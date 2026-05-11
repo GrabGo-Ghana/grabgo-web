@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     "Order food, groceries, and essentials from top local vendors with real-time delivery tracking. Join as a vendor or rider on GrabGo.",
 };
 
+//
+
 export default function RootLayout({
   children,
 }: Readonly<{
