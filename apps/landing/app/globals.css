@@ -38,6 +38,14 @@ body {
   font-family: "Plus Jakarta Sans", var(--font-space), "Trebuchet MS", "Segoe UI", sans-serif;
 }
 
+.button {
+  background-color: #fff;
+  color: #2a2a2a;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 400;
+}
+
 .stitch-icon {
   width: 1em;
   height: 1em;

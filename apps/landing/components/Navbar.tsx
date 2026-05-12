@@ -20,92 +20,33 @@ export function HomeNavbar() {
             className="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2.5"
           >
             <img src="/figma/grabgo-homepage/logo.svg" alt="GrabGo Logo" className="w-7 h-7 mr-1 " />
-            <span className=" font-bold text-[#2a2a2a] text-xl">GrabGo</span>
+            <span className=" font-bold text-[#2a2a2a] text-md ">GrabGo</span>
           </Link>
 
-          <nav className="hidden md:flex items-center ml-18  rounded-full border border-slate-200 bg-white px-5 py-2.5 shadow-sm hover:bg-orange-50 transition-colors ">
+          <nav className="hidden md:flex items-center ml-20 rounded-full border border-slate-200 bg-white px-5 py-2.5 shadow-sm transition-colors ">
             {NAV_LINKS.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className="text-md font-bold text-[#2a2a2a] hover:text-slate-900 transition-colors px-4 py-2 rounded-full"
+                className="text-md font-semibold text-[#2a2a2a] hover:text-slate-900 transition-colors px-4 py-2 rounded-full"
               >
                 {label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 shadow-sm">
-            <Link
-              href="/customer"
-              className="hidden lg:inline-flex items-center px-3 py-2 text-sm font-semibold text-slate-700 rounded-full hover:bg-slate-50 transition-colors"
-            >
-              Download App
-            </Link>
-            <button className="hidden sm:inline-flex px-3 py-2 text-sm font-semibold text-slate-700 rounded-full hover:bg-slate-50 transition-colors">
-              Login
-            </button>
-            <button className="inline-flex px-5 py-2.5 bg-[#fe6132] text-white text-sm font-bold rounded-full hover:brightness-95 transition-colors">
-              Sign Up
-            </button>
-          </div>
+        <div className="hidden md:flex items-center rounded-full border border-slate-200 bg-white shadow-sm overflow-hidden">
+          <Link
+            href="/customer"
+            className="text-md font-semibold text-[#2a2a2a] hover:bg-[#fe6132] hover:text-white transition-colors px-6 py-3 rounded-full w-full h-full"
+       >
+        Download App
+          </Link>
+        </div>
         </div>
       </div>
     </header>
   );
 }
 
-/** Standard sticky glass navbar used on most inner pages */
-export function Navbar({
-  activeHref,
-  links = STANDARD_NAV_LINKS,
-}: {
-  activeHref?: string;
-  links?: { href: string; label: string }[];
-}) {
-  const pathname = usePathname();
-  const active = activeHref ?? pathname;
 
-  return (
-    <header className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-md border-b border-[#fe6132]/10">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-[#fe6132] text-[#1a0f0a] flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              className="w-4 h-4"
-            >
-              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </div>
-          <span className="font-extrabold tracking-tight text-slate-900">GrabGo</span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-          {links.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={
-                active === href
-                  ? "text-[#fe6132]"
-                  : "hover:text-[#fe6132] transition-colors"
-              }
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-
-        <Link
-          href="/contact"
-          className="px-4 py-2 rounded-lg bg-[#fe6132] text-[#1a0f0a] text-sm font-bold hover:brightness-95 transition-all"
-        >
-          Get Support
-        </Link>
-      </div>
-    </header>
-  );
-}
