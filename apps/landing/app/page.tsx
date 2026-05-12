@@ -77,7 +77,6 @@ export default function HomePage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
       <HomeNavbar />
-
       <main>
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-[#fe6132] pt-28 pb-16 lg:pt-32 lg:pb-20">

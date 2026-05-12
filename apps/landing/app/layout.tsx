@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "GrabGo | Food, Groceries & Essentials Delivered Fast",
+  title: "GrabGo | Food delivery in Ghana.",
   description:
-    "Order food, groceries, and essentials from top local vendors with real-time delivery tracking. Join as a vendor or rider on GrabGo.",
+    "Hot meals from Accra's best restaurants, delivered fast. Download GrabGo today.",
+  icons: {
+    icon: "/figma/grabgo-homepage/logo.svg",
+  }
 };
 
-//
 
 export default function RootLayout({
   children,

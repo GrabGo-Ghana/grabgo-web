@@ -1,23 +1,15 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+
 const NAV_LINKS = [
-  { href: "/services", label: "Deliver" },
-  { href: "/vendor", label: "Partner" },
-  { href: "/customer", label: "Order" },
+  { href: "/services", label: "About Us" },
+  { href: "/vendor", label: "Vendors" },
+  { href: "/customer", label: "Riders" },
 ];
 
-const STANDARD_NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/services", label: "Services" },
-  { href: "/vendor", label: "Vendor" },
-  { href: "/rider", label: "Rider" },
-  { href: "/customer", label: "Customer" },
-];
 
-/** Floating pill navbar used on the home page */
 export function HomeNavbar() {
   return (
     <header className="fixed inset-x-0 top-3 z-50 w-full">
@@ -27,18 +19,16 @@ export function HomeNavbar() {
             href="/"
             className="inline-flex items-center rounded-full border border-slate-200 bg-white px-5 py-2.5"
           >
-            <span className="text-[1.55rem] sm:text-[1.8rem] leading-none font-extrabold tracking-tight">
-              <span className="text-slate-900">Grab</span>
-              <span className="text-[#fe6132]">GO</span>
-            </span>
+            <img src="/figma/grabgo-homepage/logo.svg" alt="GrabGo Logo" className="w-7 h-7 mr-1 " />
+            <span className=" font-bold text-[#2a2a2a] text-xl">GrabGo</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 shadow-sm">
+          <nav className="hidden md:flex items-center ml-18  rounded-full border border-slate-200 bg-white px-5 py-2.5 shadow-sm hover:bg-orange-50 transition-colors ">
             {NAV_LINKS.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
-                className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors px-4 py-2 rounded-full"
+                className="text-md font-bold text-[#2a2a2a] hover:text-slate-900 transition-colors px-4 py-2 rounded-full"
               >
                 {label}
               </Link>
