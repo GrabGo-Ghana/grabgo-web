@@ -84,7 +84,7 @@ const faqSections = [
 export default function FaqPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased min-h-screen flex flex-col">
-      <Navbar activeHref="/faq" links={FAQ_NAV} />
+      
 
       <main className="flex-1">
         {/* Hero Search */}

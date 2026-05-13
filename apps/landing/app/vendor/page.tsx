@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -58,7 +58,7 @@ const howItWorksSteps = [
 export default function VendorPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
-      <Navbar activeHref="/vendor" />
+  
 
       <main>
         {/* Hero */}

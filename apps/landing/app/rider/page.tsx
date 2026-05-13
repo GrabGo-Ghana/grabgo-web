@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/Navbar";
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -75,7 +75,7 @@ const features = [
 export default function RiderPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
-      <Navbar activeHref="/rider" links={RIDER_NAV} />
+      <HomeNavbar  />
 
       <main>
         {/* Hero */}

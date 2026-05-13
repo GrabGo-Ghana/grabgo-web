@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -68,7 +68,7 @@ const services = [
 export default function ServicesPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
-      <Navbar activeHref="/services" links={SERVICES_NAV} />
+     
 
       <main>
         {/* Hero */}
@@ -126,17 +126,17 @@ export default function ServicesPage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="flex flex-wrap justify-between items-center gap-8 md:gap-4">
               {steps.map(({ Icon, label }, i) => (
-                <>
+                
                   <div key={label} className="flex flex-col items-center text-center gap-4 flex-1 min-w-[150px]">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center">
                       <Icon />
                     </div>
                     <h4 className="font-bold text-lg">{label}</h4>
                   </div>
-                  {i < steps.length - 1 && (
-                    <div key={`divider-${i}`} className="hidden md:block h-px bg-slate-200 flex-1" />
-                  )}
-                </>
+                
+                     
+                  
+                
               ))}
             </div>
           </div>

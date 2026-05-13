@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/Navbar";
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -57,7 +57,7 @@ const hours = [
 export default function ContactPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased min-h-screen flex flex-col">
-      <Navbar activeHref="/contact" links={CONTACT_NAV} />
+      <HomeNavbar />
 
       <main className="flex flex-1 flex-col items-center">
         <div className="w-full max-w-[1200px] px-6 lg:px-10 py-8">
