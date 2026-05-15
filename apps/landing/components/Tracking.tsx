@@ -1,81 +1,140 @@
-class WavyBannerClipper {
-  waveHeight: number;
-    waveCount: number;
-    cornerRadius: number;
-  constructor({ waveHeight = 8, waveCount = 8, cornerRadius = 16 } = {}) {
-    this.waveHeight = waveHeight;
-    this.waveCount = waveCount;
-    this.cornerRadius = cornerRadius;
-  }
+import Image from "next/image"
 
-  getPath(canvas: { getContext: (arg0: string) => any; }, width: number, height: number) {
-    const ctx = canvas.getContext("2d");
-    const waveWidth = width / this.waveCount;
-    const path = new Path2D();
+interface WavyBannerProps {
+  image: string
+  title: string
+  description?: string
+}
 
-    // Start from top-left corner
-    path.moveTo(0, this.waveHeight + this.cornerRadius);
+export default function WavyBanner({ image, title, description }: WavyBannerProps) {
+  const waveHeight = 8
+  const waveCount = 8
+  const cornerRadius = 16
+  const width = 1000
+  const height = 500
+  const waveWidth = width / waveCount
 
-    // Top-left rounded corner
-    path.quadraticCurveTo(0, this.waveHeight, this.cornerRadius, this.waveHeight);
-
-    // Wavy top edge
-    for (let i = 0; i < this.waveCount; i++) {
-      const x2 = waveWidth * (i + 0.5);
-      const x3 = waveWidth * (i + 1);
-
-      if (i === 0) {
-        path.quadraticCurveTo(x2, 0, x3, this.waveHeight);
-      } else if (i === this.waveCount - 1) {
-        path.quadraticCurveTo(x2, 0, width - this.cornerRadius, this.waveHeight);
-      } else {
-        path.quadraticCurveTo(x2, 0, x3, this.waveHeight);
-      }
+  // Build top wavy path
+  let topPath = `M0,${waveHeight + cornerRadius} Q0,${waveHeight} ${cornerRadius},${waveHeight} `
+  for (let i = 0; i < waveCount; i++) {
+    const x2 = waveWidth * (i + 0.5)
+    const x3 = waveWidth * (i + 1)
+    if (i === 0) {
+      topPath += `Q${x2},0 ${x3},${waveHeight} `
+    } else if (i === waveCount - 1) {
+      topPath += `Q${x2},0 ${width - cornerRadius},${waveHeight} `
+    } else {
+      topPath += `Q${x2},0 ${x3},${waveHeight} `
     }
+  }
+  topPath += `Q${width},${waveHeight} ${width},${waveHeight + cornerRadius} `
+  topPath += `L${width},${height - waveHeight - cornerRadius} `
+  topPath += `Q${width},${height - waveHeight} ${width - cornerRadius},${height - waveHeight} `
 
-    // Top-right rounded corner
-    path.quadraticCurveTo(width, this.waveHeight, width, this.waveHeight + this.cornerRadius);
-
-    // Right edge
-    path.lineTo(width, height - this.waveHeight - this.cornerRadius);
-
-    // Bottom-right rounded corner
-    path.quadraticCurveTo(width, height - this.waveHeight, width - this.cornerRadius, height - this.waveHeight);
-
-    // Wavy bottom edge (going backwards)
-    for (let i = this.waveCount; i > 0; i--) {
-      const x2 = waveWidth * (i - 0.5);
-      const x3 = waveWidth * (i - 1);
-
-      if (i === this.waveCount) {
-        path.quadraticCurveTo(x2, height, x3, height - this.waveHeight);
-      } else if (i === 1) {
-        path.quadraticCurveTo(x2, height, this.cornerRadius, height - this.waveHeight);
-      } else {
-        path.quadraticCurveTo(x2, height, x3, height - this.waveHeight);
-      }
+  for (let i = waveCount; i > 0; i--) {
+    const x2 = waveWidth * (i - 0.5)
+    const x3 = waveWidth * (i - 1)
+    if (i === waveCount) {
+      topPath += `Q${x2},${height} ${x3},${height - waveHeight} `
+    } else if (i === 1) {
+      topPath += `Q${x2},${height} ${cornerRadius},${height - waveHeight} `
+    } else {
+      topPath += `Q${x2},${height} ${x3},${height - waveHeight} `
     }
-
-    // Bottom-left rounded corner
-    path.quadraticCurveTo(0, height - this.waveHeight, 0, height - this.waveHeight - this.cornerRadius);
-
-    // Left edge back to start
-    path.lineTo(0, this.waveHeight + this.cornerRadius);
-
-    path.closePath();
-    return path;
   }
 
-  clip(canvas: { getContext: any; }, width: number, height: number) {
-    const ctx = canvas.getContext("2d");
-    const path = this.getPath(canvas, width, height);
-    ctx.clip(path);
-  }
+  topPath += `Q0,${height - waveHeight} 0,${height - waveHeight - cornerRadius} `
+  topPath += `L0,${waveHeight + cornerRadius} Z`
 
-  draw(canvas: { getContext: any; }, width: number, height: number, fillColor = "#fe6132") {
-    const ctx = canvas.getContext("2d");
-    const path = this.getPath(canvas, width, height);
-    ctx.fillStyle = fillColor;
-    ctx.fill(path);
-  }
+  return (
+    <section className="relative flex flex-col w-full my-10 px-4 sm:px-8 lg:px-16">
+      <div className="relative w-full">
+        {/* Mobile layout - column: text top, image bottom */}
+        <div className="block lg:hidden">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="none"
+            className="w-full h-96"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <clipPath id="wavyClipMobile">
+                <path d={topPath} />
+              </clipPath>
+            </defs>
+
+            <path d={topPath} fill="#fe6132" fillOpacity="0.55" />
+
+            {/* Text at top - 50% */}
+            <foreignObject x="30" y="20" width={width - 60} height={height / 2 - 30}>
+              <div className="flex flex-col items-center justify-center text-center px-20 h-full">
+                <h2 className="text-5xl sm:text-6xl md:text-7xl font-black text-white tracking-tight">
+                  {title}
+                </h2>
+                {description && (
+                  <p className="mt-4 text-3xl text-white/90 sm:text-4xl md:text-5xl">
+                    {description}
+                  </p>
+                )}
+              </div>
+            </foreignObject>
+
+            {/* Image at bottom - 50% */}
+            <image
+              href={image}
+              x="200"
+              y={height / 2}
+              width={600}
+              height={height / 2 - 40}
+              preserveAspectRatio="xMidYMid meet"
+              clipPath="url(#wavyClipMobile)"
+            />
+          </svg>
+        </div>
+
+        {/* Desktop layout - image left, text right */}
+        <div className="hidden lg:block">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="none"
+            className="w-full h-125"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <clipPath id="wavyClipDesktop">
+                <path d={topPath} />
+              </clipPath>
+            </defs>
+
+            <path d={topPath} fill="#fe6132" fillOpacity="0.55" />
+
+            <image
+              href={image}
+              x="40"
+              y="40"
+              width={width / 2 - 80}
+              height={height - 80}
+              preserveAspectRatio="xMidYMid meet"
+              clipPath="url(#wavyClipDesktop)"
+            />
+
+            <foreignObject x={width / 2} y="0" width={width / 2} height={height}>
+              <div className="flex flex-col items-center justify-center text-center px-10 h-full">
+                <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight">
+                  {title}
+                </h2>
+                {description && (
+                  <p className="mt-4 text-lg text-white/90 max-w-sm">
+                    {description}
+                  </p>
+                )}
+              </div>
+            </foreignObject>
+
+          </svg>
+        </div>
+
+      </div>
+    </section>
+  )
 }

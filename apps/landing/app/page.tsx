@@ -6,6 +6,7 @@ import HowItWorks from "@/components/HowitWorks"
 import TrustBadges from "@/components/TrustBadges"
 import FAQ from "@/components/Faq"
 import DownloadApp from "@/components/DownloadApp"
+import Tracking from "@/components/Tracking"
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
         <Hero />
         <TriCTA />
         <DownloadApp />
+        <Tracking image={""} title={"Track your Order!"} description={"Track your order in real-time and never worry about where it is."} />
         <HowItWorks />
         <TrustBadges />
         <FAQ />
