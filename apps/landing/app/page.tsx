@@ -5,6 +5,7 @@ import TriCTA from "@/components/TriCTA"
 import HowItWorks from "@/components/HowitWorks"
 import TrustBadges from "@/components/TrustBadges"
 import FAQ from "@/components/Faq"
+import DownloadApp from "@/components/DownloadApp"
 
 export default function HomePage() {
   return (
@@ -13,6 +14,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <TriCTA />
+        <DownloadApp />
         <HowItWorks />
         <TrustBadges />
         <FAQ />

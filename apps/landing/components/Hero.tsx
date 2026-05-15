@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { MapPin, Loader2, Navigation } from "lucide-react"
+import { motion } from "framer-motion"
 
 export default function Hero() {
   const [address, setAddress] = useState("")
@@ -48,17 +49,36 @@ export default function Hero() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-col items-center justify-center gap-12">
+
+          {/* Headline */}
           <div className="flex flex-col text-center lg:text-left space-y-8">
-            <h1 className="text-5xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight">
+            <motion.h1
+              className="text-5xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight"
+              initial={{ opacity: 0, filter: "blur(12px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            >
               Hunger Ends{" "}
               <span className="text-white">Here!</span>
-            </h1>
-            <p className="text-lg items-center justify-center text-white/90 max-w-xl mx-auto lg:mx-0">
+            </motion.h1>
+
+            <motion.p
+              className="text-lg items-center justify-center text-white/90 max-w-xl mx-auto lg:mx-0"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+            >
               Order from top-rated local favorites or join our growing network as a vendor or rider. Don't be left out.
-            </p>
+            </motion.p>
           </div>
 
-          <div className="flex-1 w-full">
+          {/* Search Bar */}
+          <motion.div
+            className="flex-1 w-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.6 }}
+          >
             <div className="w-full max-w-lg mx-auto lg:mt-10">
               <form>
                 <label className="sr-only" htmlFor="hero-location">Search delivery location</label>
@@ -85,13 +105,20 @@ export default function Hero() {
                 </div>
               </form>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+          {/* Button */}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.8 }}
+          >
             <button className="px-7 py-3 bg-white text-background-dark font-bold rounded-full text-lg hover:scale-[1.02] transition-transform border border-white/90">
               Order Now
             </button>
-          </div>
+          </motion.div>
+
         </div>
       </section>
       <div aria-hidden="true" className="hero-end-curve" />
