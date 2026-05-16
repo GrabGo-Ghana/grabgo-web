@@ -13,37 +13,29 @@ const ExpandMoreIcon = () => (
 )
 
 const faqItems = [
-  { q: "How fast is GrabGo delivery?", a: "Most orders arrive in 20-35 minutes depending on distance, traffic, and merchant prep time.", open: true },
-  { q: "Can I schedule an order in advance?", a: "Yes. You can schedule selected orders ahead of time and choose your preferred delivery window." },
-  { q: "What payment methods do you accept?", a: "GrabGo supports cards, mobile wallets, and cash on delivery in supported zones." },
-  { q: "How do I track my order live?", a: "After checkout, open your order status page to see real-time rider location and delivery progress." },
+  { q: "How do I place an order on GrabGo?", a: "Download the GrabGo app, create an account, browse restaurants near you, add items to your cart and checkout. Your food will be on its way in minutes.", open: true },
+  { q: "How fast is GrabGo delivery?", a: "Most orders arrive in 20-35 minutes depending on your location, traffic, and the restaurant's prep time." },
+  { q: "What areas in Accra does GrabGo deliver to?", a: "GrabGo currently delivers across major areas in Accra including East Legon, Osu, Cantonments, Airport Residential, Tema and more. We are expanding rapidly." },
+  { q: "What payment methods do you accept?", a: "We accept Mobile Money (MTN, Vodafone, AirtelTigo), card payments and cash on delivery." },
+  { q: "What happens if my order is wrong or missing items?", a: "Contact our support team immediately through the app. We will resolve it quickly with a replacement or refund." },
+  { q: "Can I cancel or modify my order after placing it?", a: "You can cancel or modify your order within 2 minutes of placing it. After that the restaurant will have started preparing your food." },
+  { q: "Is GrabGo available 24/7?", a: "GrabGo operates based on restaurant hours. Many of our partner restaurants are open late. Check the app for live availability near you." },
+  { q: "How do I contact GrabGo support?", a: "You can reach us through the in-app support chat, email us at support@grabgo.app or call our customer service line during business hours." },
 ]
 
 export default function FAQ() {
   return (
     <section className="py-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-10 items-start">
-          <div className="space-y-5">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#fe6132]">Quick FAQ</p>
-            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900">
+        <div className="flex flex-col items-center justify-center w-full gap-12">
+          <div className="space-y-5 text-3xl lg:text-5xl font-black tracking-tight text-[#2a2a2a] text-center">  
               Got questions before you order?
-            </h2>
-            <p className="text-slate-600 max-w-md">
-              Here are the most common things customers ask before placing their first order.
-            </p>
-            <Link
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fe6132] text-white font-bold text-sm hover:brightness-95 transition-all"
-              href="/faq"
-            >
-              View Full FAQs <ChevronRightIcon />
-            </Link>
           </div>
           <div className="space-y-3">
             {faqItems.map(({ q, a, open }) => (
-              <details key={q} className="group rounded-2xl border border-slate-200 bg-white p-5" open={open}>
+              <details key={q} className="group rounded-3xl lg:w-3xl border border-slate-200 bg-white p-10" open={open}>
                 <summary className="flex items-center justify-between gap-4 cursor-pointer list-none">
-                  <span className="font-bold text-slate-900">{q}</span>
+                  <span className="font-bold text-[#2a2a2a]">{q}</span>
                   <ExpandMoreIcon />
                 </summary>
                 <p className="mt-3 text-sm text-slate-600 leading-relaxed">{a}</p>

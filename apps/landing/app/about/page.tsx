@@ -143,7 +143,7 @@ export default function AboutPage() {
         {/* Safety First */}
         <section className="py-20 relative">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-slate-900 rounded-[2rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl">
+            <div className="bg-slate-900 rounded-4xl overflow-hidden flex flex-col lg:flex-row shadow-2xl">
               <div className="lg:w-1/2 p-12 lg:p-20 flex flex-col justify-center">
                 <h2 className="text-white text-4xl font-bold mb-8 flex items-center gap-4">
                   <ShieldIcon />

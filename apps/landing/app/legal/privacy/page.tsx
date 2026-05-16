@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/Navbar";
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ const tocItems = [
 export default function PrivacyPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
-      <Navbar links={LEGAL_NAV} />
+      <HomeNavbar />
 
       <main className="max-w-[1280px] mx-auto px-6 lg:px-20 py-12">
         {/* Hero */}

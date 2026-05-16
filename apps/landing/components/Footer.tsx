@@ -40,7 +40,7 @@ export function HomeFooter() {
   return (
     <>
       <div aria-hidden="true" className="footer-top-curve" />
-      <footer className="bg-[#fe6132] pt-20 pb-10">
+      <footer className="bg-[#1a1a1a] pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
           <div className="col-span-2 lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2">

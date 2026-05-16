@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/Navbar";
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -92,7 +92,7 @@ const sections = [
 export default function TermsPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased min-h-screen">
-      <Navbar links={LEGAL_NAV} />
+      <HomeNavbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <div className="flex flex-col lg:flex-row gap-12">

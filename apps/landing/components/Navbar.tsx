@@ -22,7 +22,7 @@ export function HomeNavbar() {
             href="/"
             className="inline-flex items-center justify-center md:justify-start rounded-full border border-slate-200 bg-white w-12 h-12 md:w-auto md:h-auto md:px-5 md:py-2.5"
           >
-            <img src="/figma/grabgo-homepage/logo.svg" alt="GrabGo Logo" className="w-7 h-7 md:mr-3" />
+            <img src="media/logo.svg" alt="GrabGo Logo" className="w-7 h-7 md:mr-3" />
             <span className="hidden md:block font-bold text-[#2a2a2a] text-xl">GrabGo</span>
           </Link>
 

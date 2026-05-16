@@ -2,6 +2,7 @@
 import { FaGooglePlay, FaApple } from 'react-icons/fa'
 import { motion } from 'framer-motion'
 
+
 const Downloadapp = () => {
   return (
     <div className='bg-white py-4'>
@@ -55,6 +56,11 @@ const Downloadapp = () => {
           transition={{ duration: 1, ease: [0.25, 1, 0.25, 1], delay: 0.3 }}
           viewport={{ once: true, amount: 0.2 }}
         >
+          <img
+            src="media/home.png"
+            alt="GrabGo Mockup"
+            className='w-full max-w-2xl mx-auto object-contain '
+          />
         </motion.div>
       </div>
     </div>

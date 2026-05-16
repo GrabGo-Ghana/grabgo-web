@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
+import { HomeNavbar } from "@/components/Navbar";
 import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ const cookieTypes = [
 export default function CookiesPage() {
   return (
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
-      <Navbar links={LEGAL_NAV} />
+      <HomeNavbar />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-12 lg:px-20">
         {/* Breadcrumbs */}

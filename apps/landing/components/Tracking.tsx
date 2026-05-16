@@ -54,7 +54,7 @@ export default function WavyBanner({ image, title, description }: WavyBannerProp
           <svg
             viewBox={`0 0 ${width} ${height}`}
             preserveAspectRatio="none"
-            className="w-full h-96"
+            className="w-full h-72"
             xmlns="http://www.w3.org/2000/svg"
           >
             <defs>
@@ -63,7 +63,7 @@ export default function WavyBanner({ image, title, description }: WavyBannerProp
               </clipPath>
             </defs>
 
-            <path d={topPath} fill="#fe6132" fillOpacity="0.55" />
+            <path d={topPath} fill="#F59E0B" fillOpacity="0.85" />
 
             {/* Text at top - 50% */}
             <foreignObject x="30" y="20" width={width - 60} height={height / 2 - 30}>
@@ -106,7 +106,7 @@ export default function WavyBanner({ image, title, description }: WavyBannerProp
               </clipPath>
             </defs>
 
-            <path d={topPath} fill="#fe6132" fillOpacity="0.55" />
+            <path d={topPath} fill="#F59E0B" fillOpacity="0.85" />
 
             <image
               href={image}
@@ -130,10 +130,8 @@ export default function WavyBanner({ image, title, description }: WavyBannerProp
                 )}
               </div>
             </foreignObject>
-
           </svg>
         </div>
-
       </div>
     </section>
   )
