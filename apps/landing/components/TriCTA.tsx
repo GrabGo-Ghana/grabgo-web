@@ -35,7 +35,7 @@ const cards = [
 
 export default function TriCTA() {
   return (
-    <section className="py-20 bg-[#fff9f4]">
+    <section className="py-20 bg-[#fafafa]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         <div className="mb-12 text-center">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#2a2a2a] tracking-tight">

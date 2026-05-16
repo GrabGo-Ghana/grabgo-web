@@ -145,7 +145,7 @@ export default function TermsPage() {
               <div className="bg-slate-900 text-white p-8 rounded-2xl">
                 <h3 className="text-xl font-bold mb-4">Questions about these Terms?</h3>
                 <p className="text-slate-400 mb-6 leading-relaxed">If you have any questions about these Terms of Service, please contact our legal team at legal@grabgo.com or reach out to our support team.</p>
-                <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#fe6132] text-[#1a0f0a] font-bold rounded-xl hover:brightness-105 transition-all">
+                <Link href="/contact" className="inline-flex items-center gap-2 px-6 py-3 bg-[#fe6132] text-background-dark font-bold rounded-xl hover:brightness-105 transition-all">
                   Contact Support
                 </Link>
               </div>
