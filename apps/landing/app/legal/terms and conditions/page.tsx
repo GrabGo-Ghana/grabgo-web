@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeNavbar } from "@/components/Navbar";
-import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "GrabGo | Terms of Service",
@@ -155,7 +154,6 @@ export default function TermsPage() {
         </div>
       </main>
 
-      <SimpleFooter />
     </div>
   );
 }

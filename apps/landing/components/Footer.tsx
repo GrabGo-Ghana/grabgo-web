@@ -51,14 +51,11 @@ export function HomeFooter() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
           <div className="col-span-2 lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2">
-              <div className="bg-white p-1 rounded flex items-center justify-center">
-                <svg className="w-4 h-4 text-[#fe6132]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <span className="text-lg font-extrabold tracking-tight text-white">GrabGo</span>
+              <img src="media/logo.svg" alt="GrabGo Logo" className="w-10 h-10 md:mr-1" />
+            <span className="text-3xl font-bold tracking-tight text-white">GrabGo</span>
+
             </div>
-            <p className="text-white/85 max-w-xs">
+            <p className="text-white text-sm max-w-xs">
               Building the future of local commerce through efficient delivery and strong community partnerships.
             </p>
             <div className="flex gap-4">
@@ -96,42 +93,38 @@ export function HomeFooter() {
             </div>
           </div>
 
-          <div>
-            <h4 className="font-bold mb-6 text-white">Explore</h4>
-            <ul className="space-y-4 text-white/85 text-sm">
-              <li><Link className="hover:text-white transition-colors" href="/services">Restaurants</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/services">Grocery</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/services">Convenience</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/services">Pharmacy</Link></li>
-            </ul>
-          </div>
 
           <div>
             <h4 className="font-bold mb-6 text-white">Company</h4>
             <ul className="space-y-4 text-white/85 text-sm">
               <li><Link className="hover:text-white transition-colors" href="/about">About Us</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/about">Careers</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/about">Blog</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/about">Impact</Link></li>
+              <li><Link className="hover:text-white transition-colors" href="/about">For Vendors</Link></li>
+              <li><Link className="hover:text-white transition-colors" href="/about">For Riders</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold mb-6 text-white">Support</h4>
+            <h4 className="font-bold mb-6 text-white">Help Center</h4>
             <ul className="space-y-4 text-white/85 text-sm">
-              <li><Link className="hover:text-white transition-colors" href="/faq">Help Center</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/faq">Safety</Link></li>
+              <li><Link className="hover:text-white transition-colors" href="/faq">Faq</Link></li>
               <li><Link className="hover:text-white transition-colors" href="/contact">Contact</Link></li>
-              <li><Link className="hover:text-white transition-colors" href="/legal/privacy">Privacy</Link></li>
+
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold mb-6 text-white">Legal</h4>
+            <ul className="space-y-4 text-white/85 text-sm">
+              <li><Link className="hover:text-white transition-colors" href="/services">Privacy Policy</Link></li>
+              <li><Link className="hover:text-white transition-colors" href="/services">Terms and Conditions</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/25 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80 font-medium">
-          <p>© 2025 GrabGo Delivery Platform. All rights reserved.</p>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80 font-medium">
+          <p>© 2026 GrabGo Delivery Platform. All rights reserved.</p>
           <div className="flex gap-8">
-            <Link className="hover:text-white" href="/legal/terms">Terms of Service</Link>
-            <Link className="hover:text-white" href="/legal/cookies">Cookie Policy</Link>
           </div>
         </div>
       </footer>
@@ -139,18 +132,4 @@ export function HomeFooter() {
   );
 }
 
-/** Minimal footer used on inner pages */
-export function SimpleFooter() {
-  return (
-    <footer className="bg-white py-10 border-t border-slate-100">
-      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-        <p>© 2025 GrabGo Technologies Inc. All rights reserved.</p>
-        <div className="flex gap-6">
-          <Link href="/legal/privacy" className="hover:text-[#fe6132]">Privacy</Link>
-          <Link href="/legal/terms" className="hover:text-[#fe6132]">Terms</Link>
-          <Link href="/legal/cookies" className="hover:text-[#fe6132]">Cookies</Link>
-        </div>
-      </div>
-    </footer>
-  );
-}
+

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeNavbar } from "@/components/Navbar";
-import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "GrabGo | Privacy Policy",
@@ -27,10 +26,10 @@ export default function PrivacyPage() {
     <div className="bg-[#fff9f4] text-slate-900 antialiased">
       <HomeNavbar />
 
-      <main className="max-w-[1280px] mx-auto px-6 lg:px-20 py-12">
+      <main className="max-w-7xl mx-auto px-6 lg:px-20 py-12">
         {/* Hero */}
         <div className="mb-12">
-          <div className="bg-[#1a0f0a] rounded-xl p-10 relative overflow-hidden">
+          <div className="bg-background-dark rounded-xl p-10 relative overflow-hidden">
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(45deg, #fe6132 25%, transparent 25%), linear-gradient(-45deg, #fe6132 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #fe6132 75%), linear-gradient(-45deg, transparent 75%, #fe6132 75%)", backgroundSize: "20px 20px", backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px" }} />
             <div className="relative z-10">
               <nav className="flex items-center gap-2 text-[#fe6132] text-xs font-bold uppercase tracking-widest mb-4">
@@ -192,7 +191,7 @@ export default function PrivacyPage() {
                   <p className="font-bold text-slate-900 text-sm mb-1">Detailed Cookie Preferences</p>
                   <p className="text-xs text-slate-500">Learn more about how we use cookies and manage your preferences.</p>
                 </div>
-                <Link className="px-4 py-2 bg-[#fe6132] text-[#1a0f0a] text-xs font-bold rounded-lg hover:brightness-95 transition-all" href="/legal/cookies">
+                <Link className="px-4 py-2 bg-[#fe6132] text-background-dark text-xs font-bold rounded-lg hover:brightness-95 transition-all" href="/legal/cookies">
                   View Cookie Policy
                 </Link>
               </div>
@@ -201,7 +200,6 @@ export default function PrivacyPage() {
         </div>
       </main>
 
-      <SimpleFooter />
     </div>
   );
 }

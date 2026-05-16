@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeNavbar } from "@/components/Navbar";
-import { SimpleFooter } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "GrabGo Rider | Earn on Your Schedule",
@@ -95,7 +94,7 @@ export default function RiderPage() {
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
                   href="/contact"
-                  className="px-7 py-3 rounded-xl bg-[#fe6132] text-[#1a0f0a] font-bold text-sm shadow-lg shadow-[#fe6132]/20 hover:brightness-95 transition-all"
+                  className="px-7 py-3 rounded-xl bg-[#fe6132] text-background-dark font-bold text-sm shadow-lg shadow-[#fe6132]/20 hover:brightness-95 transition-all"
                 >
                   Get Started as Rider
                 </Link>
@@ -141,7 +140,6 @@ export default function RiderPage() {
         </section>
       </main>
 
-      <SimpleFooter />
     </div>
   );
 }
