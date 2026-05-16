@@ -52,8 +52,7 @@ export function HomeFooter() {
           <div className="col-span-2 lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2">
               <img src="media/logo.svg" alt="GrabGo Logo" className="w-10 h-10 md:mr-1" />
-            <span className="text-3xl font-bold tracking-tight text-white">GrabGo</span>
-
+              <span className="text-3xl font-bold tracking-tight text-white">GrabGo</span>
             </div>
             <p className="text-white text-sm max-w-xs">
               Building the future of local commerce through efficient delivery and strong community partnerships.
@@ -73,16 +72,16 @@ export function HomeFooter() {
               </a>
             </div>
             <div className="space-y-3">
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/75">Download the app</p>
+              <p className="text-[0.65rem] font-semibold uppercase tracking-tighter text-white/75">Download the app</p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <a className="inline-flex min-w-44.5 items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://play.google.com/store" rel="noopener noreferrer" target="_blank">
+                <a className="inline-flex w-fit sm:inline-flex items-center gap-3  rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://play.google.com/store" rel="noopener noreferrer" target="_blank">
                   <GooglePlayIcon />
                   <span className="leading-tight">
                     <span className="block text-[0.62rem] text-white/80 group-hover:text-[#fe6132]/80">Get it on</span>
                     <span className="block text-sm font-bold text-white group-hover:text-[#fe6132]">Google Play</span>
                   </span>
                 </a>
-                <a className="inline-flex min-w-44.5 items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://www.apple.com/app-store/" rel="noopener noreferrer" target="_blank">
+                <a className="inline-flex w-fit sm:inline-flex items-center gap-3  rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://www.apple.com/app-store/" rel="noopener noreferrer" target="_blank">
                   <span className="text-white group-hover:text-[#fe6132]"><AppleIcon /></span>
                   <span className="leading-tight">
                     <span className="block text-[0.62rem] text-white/80 group-hover:text-[#fe6132]/80">Download on the</span>
@@ -122,8 +121,8 @@ export function HomeFooter() {
         </div>
 
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80 font-medium">
-          <p>© 2026 GrabGo Delivery Platform. All rights reserved.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-md text-[#f2f2f2] font-normal">
+          <p>© 2026 GrabGo. All rights reserved.</p>
           <div className="flex gap-8">
           </div>
         </div>

@@ -68,7 +68,7 @@ export function HomeNavbar() {
             {/* Logo inside menu */}
             <div className="absolute top-6 left-4">
               <Link href="/" onClick={() => setIsOpen(false)} className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 bg-white">
-                <img src="/figma/grabgo-homepage/logo.svg" alt="GrabGo Logo" className=" w-6 h-6" />
+                <img src="media/logo.svg" alt="GrabGo Logo" className=" w-6 h-6" />
               </Link>
             </div>
 
