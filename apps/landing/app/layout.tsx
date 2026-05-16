@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Hot meals from Accra's best restaurants, delivered fast. Download GrabGo today.",
   icons: {
-    icon: "/figma/grabgo-homepage/logo.svg",
+    icon: "media/logo.svg",
   }
 };
 

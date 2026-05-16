@@ -9,7 +9,7 @@ import Tracking from "@/components/Tracking"
 
 export default function HomePage() {
   return (
-    <div className="bg-[#fff9f4] text-slate-900 antialiased">
+    <div className="bg-[#fff9f4] text - [#2a2a2a] antialiased">
       <HomeNavbar />
       <main>
         <Hero />

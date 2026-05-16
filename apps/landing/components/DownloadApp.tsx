@@ -38,11 +38,11 @@ const Downloadapp = () => {
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.4 }}
           viewport={{ once: true, amount: 0.2 }}
         >
-          <a href="#" className="flex items-center gap-3 bg-[#fe6132] text-white px-3 py-3 rounded-full font-medium hover:opacity-90 transition">
+          <a href="#" className="flex items-center gap-3 bg-[#fe6132] text-white px-3 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-4 rounded-full font-medium hover:opacity-90 transition">
             <FaGooglePlay size={15} />
             <span className="text-sm font-semibold">Get on Android</span>
           </a>
-          <a href="#" className="flex items-center gap-2 bg-[#fe6132] text-white px-3 py-3 rounded-full font-medium hover:opacity-90 transition">
+          <a href="#" className="flex items-center gap-2 bg-[#fe6132] text-white px-3 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-4 rounded-full font-medium hover:opacity-90 transition">
             <FaApple size={15} />
             <span className="text-sm font-semibold">Get on iPhone</span>
           </a>

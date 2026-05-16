@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FaTwitter } from "react-icons/fa";
 
 const InstagramIcon = () => (
   <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" viewBox="0 0 24 24">
@@ -19,6 +20,12 @@ const TikTokIcon = () => (
     <path d="M14.6 3h3.1c.2 1.2 1.1 2.3 2.3 2.8v3.1c-1.2 0-2.4-.4-3.5-1.1v6.5a5.2 5.2 0 1 1-5.2-5.2c.2 0 .5 0 .7.1V12c-.2-.1-.5-.1-.7-.1a2.2 2.2 0 1 0 2.2 2.2V3z" />
   </svg>
 );
+
+const X = () => (
+  <svg aria-hidden="true" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M14.6 3h3.1c.2 1.2 1.1 2.3 2.3 2.8v3.1c-1.2 0-2.4-.4.3.5-1.1v6.5a5.2 5.2 0 1 1-5.2-5.2c.2 0 .5 0 .7.1V12c-.2-.1-.5-.1-.7-.1a2 2.2 0 1 0 2.2 2.2V3z" />
+  </svg>
+)
 
 const GooglePlayIcon = () => (
   <svg aria-hidden="true" className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
@@ -64,18 +71,21 @@ export function HomeFooter() {
               <a aria-label="TikTok" className="w-10 h-10 rounded-full bg-white/14 flex items-center justify-center hover:bg-white transition-colors group" href="https://www.tiktok.com" rel="noopener noreferrer" target="_blank">
                 <span className="text-white group-hover:text-[#fe6132]"><TikTokIcon /></span>
               </a>
+              <a arial-label="X" className="w-10 h-10 rounded-full bg-white/14 flex items-center justify-center hover:bg-white transition-colors group" href="https://www.x.com" rel="noopener noreferrer" target="_blank">
+                <span className="text-white group-hover:text-[#fe6132]"><FaTwitter /></span>
+              </a>
             </div>
             <div className="space-y-3">
               <p className="text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-white/75">Download the app</p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <a className="inline-flex min-w-[178px] items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://play.google.com/store" rel="noopener noreferrer" target="_blank">
+                <a className="inline-flex min-w-44.5 items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://play.google.com/store" rel="noopener noreferrer" target="_blank">
                   <GooglePlayIcon />
                   <span className="leading-tight">
                     <span className="block text-[0.62rem] text-white/80 group-hover:text-[#fe6132]/80">Get it on</span>
                     <span className="block text-sm font-bold text-white group-hover:text-[#fe6132]">Google Play</span>
                   </span>
                 </a>
-                <a className="inline-flex min-w-[178px] items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://www.apple.com/app-store/" rel="noopener noreferrer" target="_blank">
+                <a className="inline-flex min-w-44.5 items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 transition-colors hover:bg-white group" href="https://www.apple.com/app-store/" rel="noopener noreferrer" target="_blank">
                   <span className="text-white group-hover:text-[#fe6132]"><AppleIcon /></span>
                   <span className="leading-tight">
                     <span className="block text-[0.62rem] text-white/80 group-hover:text-[#fe6132]/80">Download on the</span>

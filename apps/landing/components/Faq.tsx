@@ -1,3 +1,5 @@
+"use client"
+import { motion } from "framer-motion"
 import Link from "next/link"
 
 const ChevronRightIcon = () => (
@@ -25,7 +27,12 @@ const faqItems = [
 
 export default function FAQ() {
   return (
-    <section className="py-20 overflow-hidden">
+    <motion.section className="py-20 overflow-hidden"
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, ease: [0.25, 1, 0.25, 1], delay: 0.3 }}
+      viewport={{ once: true, amount: 0.2 }}
+      >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center w-full gap-12">
           <div className="space-y-5 text-3xl lg:text-5xl font-black tracking-tight text-[#2a2a2a] text-center">  
@@ -44,6 +51,6 @@ export default function FAQ() {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   )
 }
