@@ -1,56 +1,69 @@
 "use client"
-import { motion } from "framer-motion"
-import Link from "next/link"
+import { useState } from "react"
+import { ChevronDown } from "lucide-react"
 
-const ChevronRightIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-  </svg>
-)
+interface FAQItemProps {
+  question: string
+  answer: string
+  isOpen: boolean
+  onClick: () => void
+}
 
-const ExpandMoreIcon = () => (
-  <svg className="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-  </svg>
-)
+const FAQItem = ({ question, answer, isOpen, onClick }: FAQItemProps) => {
+  return (
+    <div className={`border-b border-gray-200 py-5 transition-colors duration-300 ${isOpen ? 'bg-[#fe6132]/5 rounded-2xl px-6 -mx-6 border-transparent' : 'px-6 -mx-6'}`}>
+      <button
+        className="w-full flex items-center justify-between text-left focus:outline-none group"
+        onClick={onClick}
+        aria-expanded={isOpen}
+      >
+        <span className={`text-xl font-bold tracking-tight transition-colors duration-300 ${isOpen ? 'text-[#fe6132]' : 'text-gray-900 group-hover:text-[#fe6132]'}`}>
+          {question}
+        </span>
+        <div className={`shrink-0 ml-4 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-sm ${isOpen ? 'bg-[#fe6132] text-white rotate-180' : 'bg-white text-gray-400 group-hover:bg-[#fe6132]/10 group-hover:text-[#fe6132] border border-gray-100'}`}>
+          <ChevronDown size={24} />
+        </div>
+      </button>
+      <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
+        <div className="overflow-hidden text-gray-600 text-lg leading-relaxed pr-12 font-medium">
+          {answer}
+        </div>
+      </div>
+    </div>
+  )
+}
 
-const faqItems = [
-  { q: "How do I place an order on GrabGo?", a: "Download the GrabGo app, create an account, browse restaurants near you, add items to your cart and checkout. Your food will be on its way in minutes.", open: true },
-  { q: "How fast is GrabGo delivery?", a: "Most orders arrive in 20-35 minutes depending on your location, traffic, and the restaurant's prep time." },
-  { q: "What areas in Accra does GrabGo deliver to?", a: "GrabGo currently delivers across major areas in Accra including East Legon, Osu, Cantonments, Airport Residential, Tema and more. We are expanding rapidly." },
-  { q: "What payment methods do you accept?", a: "We accept Mobile Money (MTN, Vodafone, AirtelTigo), card payments and cash on delivery." },
-  { q: "What happens if my order is wrong or missing items?", a: "Contact our support team immediately through the app. We will resolve it quickly with a replacement or refund." },
-  { q: "Can I cancel or modify my order after placing it?", a: "You can cancel or modify your order within 2 minutes of placing it. After that the restaurant will have started preparing your food." },
-  { q: "Is GrabGo available 24/7?", a: "GrabGo operates based on restaurant hours. Many of our partner restaurants are open late. Check the app for live availability near you." },
-  { q: "How do I contact GrabGo support?", a: "You can reach us through the in-app support chat, email us at support@grabgo.app or call our customer service line during business hours." },
+const faqs = [
+  { question: "How fast is the delivery?", answer: "Our lightning-fast logistics network ensures that most orders are delivered within 20-30 minutes. Real-time traffic monitoring and optimized routing help our riders get to you as quickly as possible." },
+  { question: "Are there any hidden fees?", answer: "No, we believe in 100% transparency. The delivery fee and any applicable taxes are clearly displayed at checkout before you confirm your order. No surprises, ever." },
+  { question: "Can I track my order in real-time?", answer: "Absolutely! Once your order is picked up by a rider, you can track their exact location on the live map in our app until it reaches your doorstep." },
+  { question: "What if there is an issue with my order?", answer: "Our 24/7 customer support team is always ready to help. You can report an issue directly through the app, and we'll resolve it immediately with a refund or replacement." },
+  { question: "Do you deliver late at night?", answer: "Yes! We have partners and riders operating 24/7 in most major cities. Whether it's a midnight snack or an early morning pharmacy run, we've got you covered." },
 ]
 
 export default function FAQ() {
+  const [openIndex, setOpenIndex] = useState(0)
+
   return (
-    <motion.section className="py-20 overflow-hidden"
-      initial={{ opacity: 0, y: 60 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1, ease: [0.25, 1, 0.25, 1], delay: 0.3 }}
-      viewport={{ once: true, amount: 0.2 }}
-      >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center justify-center w-full gap-12">
-          <div className="space-y-5 text-3xl lg:text-5xl font-black tracking-tight text-[#2a2a2a] text-center">  
-              Got questions before you order?
-          </div>
-          <div className="space-y-3">
-            {faqItems.map(({ q, a, open }) => (
-              <details key={q} className="group rounded-3xl lg:w-3xl border border-slate-200 bg-white p-10" open={open}>
-                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none">
-                  <span className="font-bold text-[#2a2a2a]">{q}</span>
-                  <ExpandMoreIcon />
-                </summary>
-                <p className="mt-3 text-sm text-slate-600 leading-relaxed">{a}</p>
-              </details>
-            ))}
-          </div>
+    <section id="faqs" className="py-32 px-6 lg:px-20 max-w-250 mx-auto">
+      <div className="text-center mb-16">
+        <div className="inline-flex items-center space-x-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full font-bold uppercase tracking-wider text-sm mb-6">
+          <span>Support</span>
         </div>
+        <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">Frequently Asked Questions</h2>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto font-medium">Got questions? We've got answers. Here is everything you need to know about GrabGo.</p>
       </div>
-    </motion.section>
+      <div className="flex flex-col">
+        {faqs.map((faq, index) => (
+          <FAQItem
+            key={index}
+            question={faq.question}
+            answer={faq.answer}
+            isOpen={openIndex === index}
+            onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
+          />
+        ))}
+      </div>
+    </section>
   )
 }

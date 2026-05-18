@@ -1,12 +1,14 @@
 import Navbar  from "@/components/Navbar"
-import { HomeFooter } from "@/components/Footer"
+import Footer  from "@/components/Footer"
 import Hero from "@/components/Hero"
 import TriCTA from "@/components/TriCTA"
 import HowItWorks from "@/components/HowitWorks"
 import FAQ from "@/components/Faq"
 import DownloadApp from "@/components/DownloadApp"
-import Tracking from "@/components/About"
+import Tracking from "@/components/Tracking"
 import Contacts from "@/components/Contacts"
+import About from "@/components/About"
+
 
 export default function HomePage() {
   return (
@@ -25,8 +27,11 @@ export default function HomePage() {
         <section id="vendors">
           <HowItWorks />
         </section>
-        <section id="about-us">
+        <section id="tracking">
           <Tracking />
+        </section>
+        <section id="about">
+          <About />
         </section>
         <section id="faq">
           <FAQ />
@@ -35,7 +40,7 @@ export default function HomePage() {
           <Contacts />
         </section>
       </main>
-      <HomeFooter />
+      <Footer />
     </div>
   )
 }

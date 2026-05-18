@@ -18,7 +18,7 @@ const Navbar = () => {
 
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <a href="/" className="flex items-center space-x-2 bg-[#fe6132] text-white px-5 h-11.25 rounded-full font-extrabold text-xl tracking-tight hover:scale-105 transition-transform">
+            <a href="/" className="flex items-center space-x-2 bg-[#fe6132] text-white px-5 h-11.25 rounded-full font-extrabold text-xl tracking-tight ">
               <img src="/media/logo.svg" alt="GrabGO" className="w-6 h-6 object-contain rounded-md" style={{ filter: 'brightness(0) invert(1)' }} />
               <span className="hidden sm:inline">GrabGO</span>
             </a>
@@ -27,11 +27,11 @@ const Navbar = () => {
           {/* Desktop Links Pill */}
           <div className="hidden lg:flex justify-center">
             <ul className="bg-white rounded-full flex items-center px-2 h-14 shadow-sm border border-gray-100">
-              {['Customers', 'Vendors', 'Riders', 'FAQs'].map((item) => (
+              {['About Us', 'Vendors', 'Riders', 'FAQs'].map((item) => (
                 <li key={item} className="relative group flex items-center h-full">
                   <a
                     className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-gray-600 transition-colors duration-300 group-hover:text-white"
-                    href={`#${item.toLowerCase()}`}
+                    href={`#${item.toLowerCase().replace(' ', '-')}`}
                   >
                     {item}
                   </a>
@@ -71,7 +71,7 @@ const Navbar = () => {
               onClick={() => setMobileMenuOpen(false)}
               className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
