@@ -45,7 +45,7 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(0)
 
   return (
-    <section id="faqs" className="py-32 px-6 lg:px-20 max-w-250 mx-auto">
+    <section id="faqs" className="py-20 px-6 lg:px-20 max-w-250 mx-auto">
       <div className="text-center mb-16">
         <div className="inline-flex items-center space-x-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full font-bold uppercase tracking-wider text-sm mb-6">
           <span>Support</span>

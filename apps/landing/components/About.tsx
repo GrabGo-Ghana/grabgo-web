@@ -58,17 +58,14 @@ export default function AboutUs() {
           {/* Content */}
           <foreignObject x="0" y="0" width={width} height={height} clipPath="url(#wavyClipAbout)">
             <div className="flex flex-col items-center justify-center text-center px-16 sm:px-24 lg:px-40 h-full gap-6">
-              <p className="text-white/80 text-xl sm:text-2xl font-bold uppercase tracking-widest py-3">
-                
-              </p>
-              <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white tracking-tight leading-tight">
-                
-              </h2>
-              <p className="text-white/90 text-lg sm:text-xl lg:text-2xl leading-relaxed max-w-2xl">
-                
+              <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-widest py-3 text-white">
+                About Us
+              </h1>
+              <p className="text-white/90 text-xl sm:text-2xl lg:text-2xl leading-relaxed max-w-2xl">
+                GrabGo was built for one reason because getting food delivered in Accra was broken. Cold meals, missing orders, riders who disappear mid-delivery. We lived it, we hated it, and we fixed it. GrabGo is Accra's fastest food delivery platform connecting hungry customers, ambitious vendors, and hardworking riders on one seamless platform built specifically for how this city moves.
               </p>
               <a href="#customers" className="mt-2 inline-flex items-center px-8 py-3 bg-white text-[#fe6132] font-bold rounded-full hover:opacity-90 transition text-lg">
-                
+                Order Now
               </a>
             </div>
           </foreignObject>

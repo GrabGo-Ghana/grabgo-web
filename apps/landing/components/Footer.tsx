@@ -4,15 +4,15 @@ import { FaApple, FaGooglePlay, FaXTwitter, FaInstagram, FaFacebook, FaLinkedin 
 const footerLinks = [
   {
     title: "Company",
-    links: ["About Us", "Careers", "Customers", "Vendors", "Riders", "Storefront", "Blog", "Contact"]
+    links: ["About Us", "Customers", "Vendors", "Riders"]
   },
   {
-    title: "Categories",
-    links: ["Fast Food Near Me", "Groceries", "Pharmacy", "Desserts & Pastries", "Healthy Choices", "Asian Cuisine", "Local Delicacies"]
+    title: "Help & Support",
+    links: ["FAQ", "Contact Us"]
   },
   {
-    title: "Popular Areas",
-    links: ["Downtown", "Westside", "North Hills", "Business District", "University Campus", "Suburbs"]
+    title: "Legal",
+    links: ["Privacy Policy", "Terms and Conditions", "Cookie Policy"]
   }
 ]
 
