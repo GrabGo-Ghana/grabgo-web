@@ -31,15 +31,15 @@ export default function Footer() {
               <Image
                 src="/media/logo.svg"
                 alt="GrabGo App Icon"
-                width={80}
-                height={80}
+                width={50}
+                height={50}
                 className="w-full h-full object-contain rounded-[18px] shadow-sm"
                 style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
             <div>
               <h2 className="text-4xl font-extrabold text-white tracking-tight">GrabGo</h2>
-              <p className="text-white/80 mt-2 font-medium">Bringing joy to your doorstep.</p>
+              <p className="text-white/80 mt-2 font-medium">Whenever you want it.</p>
             </div>
 
             {/* App Download Badges */}

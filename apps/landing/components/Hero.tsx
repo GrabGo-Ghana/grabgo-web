@@ -34,7 +34,9 @@ export default function Hero() {
       </div>
 
       {/* Umbrella Curve Decorative Edge */}
+      <div className="sm:bg-[#fe6132]">
       <div className="umbrella-curve-hero"></div>
+      </div>
     </section>
   )
 }

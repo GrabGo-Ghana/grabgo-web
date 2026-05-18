@@ -1,6 +1,6 @@
 export default function AboutUs() {
-  const waveHeight = 8
-  const waveCount = 8
+  const waveHeight = 15
+  const waveCount = 15
   const cornerRadius = 16
   const width = 1000
   const height = 500
@@ -59,16 +59,16 @@ export default function AboutUs() {
           <foreignObject x="0" y="0" width={width} height={height} clipPath="url(#wavyClipAbout)">
             <div className="flex flex-col items-center justify-center text-center px-16 sm:px-24 lg:px-40 h-full gap-6">
               <p className="text-white/80 text-xl sm:text-2xl font-bold uppercase tracking-widest py-3">
-                Our Story
+                
               </p>
               <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white tracking-tight leading-tight">
-                We were hungry. So we built the fix.
+                
               </h2>
               <p className="text-white/90 text-lg sm:text-xl lg:text-2xl leading-relaxed max-w-2xl">
-                GrabGo didn't start in a boardroom. It started with a bad delivery experience and a "we can do better" moment. Accra has incredible food — getting it delivered? Not so much. So we fixed it.
+                
               </p>
               <a href="#customers" className="mt-2 inline-flex items-center px-8 py-3 bg-white text-[#fe6132] font-bold rounded-full hover:opacity-90 transition text-lg">
-                See How It Works
+                
               </a>
             </div>
           </foreignObject>

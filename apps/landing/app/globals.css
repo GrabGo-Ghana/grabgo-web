@@ -141,7 +141,7 @@ h1, h2, h3, h4, h5, h6 {
   right: 0;
   height: 24px;
   z-index: 20;
-  background-image: radial-gradient(circle at 20px 24px, #ffffff 20px, transparent 20.5px);
+  background-image: radial-gradient(circle at 20px 24px, #fe6132 20px, transparent 20.5px);
   background-size: 40px 24px;
   background-repeat: repeat-x;
 }

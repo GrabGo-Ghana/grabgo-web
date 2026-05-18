@@ -10,7 +10,7 @@ const Downloadapp = () => {
 
         {/* Headline */}
         <motion.h2
-          className='text-3xl sm:text-4xl lg:text-5xl text-center text-[#2a2a2a] font-black mb-4 tracking-tight'
+          className='text-3xl sm:text-4xl lg:text-5xl text-center text-[color-text-main] font-black mb-4 tracking-tight'
           initial={{ opacity: 0, filter: 'blur(12px)' }}
           whileInView={{ opacity: 1, filter: 'blur(0px)' }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -21,7 +21,7 @@ const Downloadapp = () => {
 
         {/* Paragraph */}
         <motion.p
-          className='text-lg text-center text-slate-600 max-w-xl mx-auto'
+          className='text-lg text-center text-[color-text-muted] max-w-xl mx-auto'
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
@@ -39,11 +39,11 @@ const Downloadapp = () => {
           viewport={{ once: true, amount: 0.2 }}
         >
           <a href="#" className="flex items-center gap-3 bg-[#fe6132] text-white px-3 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-4 rounded-full font-medium hover:opacity-90 transition">
-            <FaGooglePlay size={15} />
+            <FaGooglePlay size={18} />
             <span className="text-sm font-semibold">Get on Android</span>
           </a>
           <a href="#" className="flex items-center gap-2 bg-[#fe6132] text-white px-3 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-4 rounded-full font-medium hover:opacity-90 transition">
-            <FaApple size={15} />
+            <FaApple size={18} />
             <span className="text-sm font-semibold">Get on iPhone</span>
           </a>
         </motion.div>

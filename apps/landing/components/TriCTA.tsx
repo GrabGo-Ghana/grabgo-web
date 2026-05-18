@@ -38,10 +38,10 @@ export default function TriCTA() {
     <section className="py-20 bg-[#fafafa]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         <div className="mb-12 text-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#2a2a2a] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[color-text-main] tracking-tight">
             Empowering the City
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-lg text[color-text-muted]">
             Our platform connects hungry customers, reliable riders and top-tier local vendors. 
           </p>
         </div>
@@ -67,8 +67,8 @@ export default function TriCTA() {
               >
                 <Icon style={{ color }} className="w-8 h-8" />
               </motion.div>
-              <h3 className="text-2xl font-bold mb-3">{title}</h3>
-              <p className="text-slate-600 mb-6">{desc}</p>
+              <h3 className="text-2xl text-[color-text-main] font-bold mb-3">{title}</h3>
+              <p className="text-[color-text-muted] mb-6">{desc}</p>
               <Link
                 className="inline-flex items-center font-bold gap-1 group-hover:gap-2 transition-all"
                 style={{ color }}
