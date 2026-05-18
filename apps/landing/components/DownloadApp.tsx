@@ -1,7 +1,7 @@
 "use client"
 import { FaGooglePlay, FaApple } from 'react-icons/fa'
 import { motion } from 'framer-motion'
-
+import Image from 'next/image'
 
 const Downloadapp = () => {
   return (
@@ -50,16 +50,19 @@ const Downloadapp = () => {
 
         {/* Mockup Image */}
         <motion.div
-          className="mt-10 w-full"
+          className="mt-10 w-full flex justify-center"
           initial={{ opacity: 0, y: 60 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.25, 1, 0.25, 1], delay: 0.3 }}
           viewport={{ once: true, amount: 0.2 }}
         >
-          <img
-            src="media/home.png"
+          <Image
+            src="/media/home.png"
             alt="GrabGo Mockup"
-            className='w-full max-w-2xl mx-auto object-contain '
+            width={672}
+            height={500}
+            className='w-full max-w-2xl object-contain'
+            priority={false}
           />
         </motion.div>
       </div>

@@ -3,13 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "GrabGo | Food delivery in Ghana.",
-  description:
-    "Hot meals from Accra's best restaurants, delivered fast. Download GrabGo today.",
+  description: "Hot meals from Accra's best restaurants, delivered fast. Download GrabGo today.",
   icons: {
     icon: "media/logo.svg",
   }
 };
-
 
 export default function RootLayout({
   children,

@@ -8,8 +8,8 @@ const cards = [
     icon: ShoppingBasket,
     color: "#fe6132",
     bg: "#fff0eb",
-    title: "Order Now",
-    desc: "Hungry? Get the best food and groceries delivered to your door in minutes.",
+    title: "For Customers",
+    desc: "Hungry? Get the your favorite meals delivered to your door in minutes.",
     cta: "Start Shopping",
     href: "/customer",
   },
@@ -17,8 +17,8 @@ const cards = [
     icon: Store,
     color: "#0ea5e9",
     bg: "#e0f2fe",
-    title: "Become a Vendor",
-    desc: "Expand your reach and grow your sales with our professional delivery fleet.",
+    title: "For Vendors",
+    desc: "Expand your reach and grow your sales with our seamless logistics platform.",
     cta: "Partner With Us",
     href: "/vendor",
   },
@@ -26,7 +26,7 @@ const cards = [
     icon: Bike,
     color: "#22c55e",
     bg: "#dcfce7",
-    title: "Join as Rider",
+    title: "For Riders",
     desc: "Be your own boss. Earn competitive rates on your own schedule with GrabGo.",
     cta: "Start Riding",
     href: "/rider",
@@ -38,9 +38,12 @@ export default function TriCTA() {
     <section className="py-20 bg-[#fafafa]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         <div className="mb-12 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#2a2a2a] tracking-tight">
-            Three Ways to GrabGo?
-          </h2>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#2a2a2a] tracking-tight">
+            Empowering the City
+          </h1>
+          <p className="mt-4 text-lg text-slate-600">
+            Our platform connects hungry customers, reliable riders and top-tier local vendors. 
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {cards.map(({ icon: Icon, color, bg, title, desc, cta, href }) => (

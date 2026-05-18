@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FaTwitter } from "react-icons/fa";
+import Image from "next/image";
 
 const InstagramIcon = () => (
   <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.9" viewBox="0 0 24 24">
@@ -51,7 +52,7 @@ export function HomeFooter() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
           <div className="col-span-2 lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2">
-              <img src="media/logo.svg" alt="GrabGo Logo" className="w-10 h-10 md:mr-1" />
+              <Image src="/media/logo.svg" alt="GrabGo Logo" width={40} height={40} className="w-10 h-10 md:mr-1" />
               <span className="text-3xl font-bold tracking-tight text-white">GrabGo</span>
             </div>
             <p className="text-white text-sm max-w-xs">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HomeNavbar } from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import { HomeFooter} from "@/components/Footer";
 
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="bg-[#fafafa] text-slate-900 antialiased min-h-screen py-10 flex flex-col">
-      <HomeNavbar />
+      <Navbar />
 
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-20">
         
@@ -31,23 +31,23 @@ export default function ContactPage() {
           <form className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input
-                className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none focus:ring-2 focus:ring-[#ccc]  placeholder:text-slate-400"
+                className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none   placeholder:text-slate-400"
                 placeholder="Your name"
                 type="text"
               />
               <input
-                className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none focus:ring-2 focus:ring-[#ccc]  placeholder:text-slate-400"
+                className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none   placeholder:text-slate-400"
                 placeholder="your@email.com"
                 type="email"
               />
             </div>
             <input
-              className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none focus:ring-2 focus:ring-[#ccc]  placeholder:text-slate-400"
+              className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none  placeholder:text-slate-400"
               placeholder="Your phone number"
               type="tel"
             />
             <textarea
-              className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none focus:ring-2 focus:ring-[#ccc]  placeholder:text-slate-400 resize-none"
+              className="w-full rounded-xl border border-slate-200 bg-[#fafafa] text-slate-900 px-4 py-3 outline-none  placeholder:text-slate-400 resize-none"
               placeholder="Your message"
               rows={5}
             />
@@ -58,10 +58,8 @@ export default function ContactPage() {
               Send Message
             </button>
           </form>
-
         </div>
-      </main>
-      <HomeFooter />
+      </main> 
     </div>
     
   );
