@@ -36,7 +36,7 @@ const Tracking = () => {
           </p>
           <a
             href="#download"
-            className="inline-flex items-center self-start px-6 py-4 bg-[#fe6132] text-white font-bold rounded-full hover:opacity-90 transition text-lg"
+            className="inline-flex items-center self-start px-4 py-3 bg-[#fe6132] text-white font-medium rounded-full hover:opacity-90 transition text-lg"
           >
             Download the App
           </a>

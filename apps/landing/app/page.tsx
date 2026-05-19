@@ -18,7 +18,6 @@ export default function HomePage() {
         <section id="home">
           <Hero />
         </section>
-
         <section id="riders">
           <DownloadApp />
         </section>

@@ -34,7 +34,7 @@ export default function TriCTA() {
               Expand your reach and grow your sales with our seamless logistics platform. List your business and start getting orders today.
             </p>
             <div className="flex flex-wrap gap-4 mt-2">
-              <a href="#" className="flex items-center gap-3 bg-white text-[#0f172a] px-5 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md">
+              <a href="#" className="flex items-center gap-3 bg-[#fe6132] text-white/85 px-5 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md">
                 Partner With Us
               </a>
             </div>
@@ -66,7 +66,7 @@ export default function TriCTA() {
               Join our rider network and earn competitive rates on your own schedule. Flexible hours, fast payouts, real income.
             </p>
             <div className="flex flex-wrap gap-4 mt-2">
-              <a href="#" className="flex items-center gap-3 bg-white text-[#0f172a] px-5 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md">
+              <a href="#" className="flex items-center gap-3 bg-[#fe6132] text-white/85 px-5 py-3 rounded-full font-bold hover:opacity-90 transition shadow-md">
                 Start Riding
               </a>
             </div>
