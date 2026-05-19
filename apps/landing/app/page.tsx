@@ -18,9 +18,7 @@ export default function HomePage() {
         <section id="home">
           <Hero />
         </section>
-        <section id="about">
-          <TriCTA />
-        </section>
+
         <section id="riders">
           <DownloadApp />
         </section>
@@ -29,6 +27,9 @@ export default function HomePage() {
         </section>
         <section id="tracking">
           <Tracking />
+        </section>
+        <section id="riders">
+          <TriCTA />
         </section>
         <section id="about">
           <About />

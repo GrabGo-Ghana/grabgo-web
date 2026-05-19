@@ -65,7 +65,7 @@ export default function Footer() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {footerLinks.map((col, idx) => (
                 <div key={idx}>
-                  <h3 className="uppercase text-[#FFD166] font-bold tracking-wider text-sm mb-6">{col.title}</h3>
+                  <h3 className="uppercase font-normal tracking-wider text-sm mb-6" style={{color: "#ffd166"}}>{col.title}</h3>
                   <ul className="grid gap-4">
                     {col.links.map((link, lIdx) => (
                       <li key={lIdx}>
@@ -83,23 +83,23 @@ export default function Footer() {
 
         {/* Socials & Copyright */}
         <div className="py-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-white/70 text-sm font-medium mb-6 md:mb-0">
+          <p className="text-white/70 text-md font-medium mb-6 md:mb-0">
             © 2026 GrabGo. All rights reserved.
           </p>
           <div className="flex items-center space-x-6">
-            <a href="#" className="text-white hover:text-[#FFD166] transition-colors flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaXTwitter size={20} />
               <span className="hidden sm:inline">Twitter</span>
             </a>
-            <a href="#" className="text-white hover:text-[#FFD166] transition-colors flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaInstagram size={20} />
               <span className="hidden sm:inline">Instagram</span>
             </a>
-            <a href="#" className="text-white hover:text-[#FFD166] transition-colors flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaFacebook size={20} />
               <span className="hidden sm:inline">Facebook</span>
             </a>
-            <a href="#" className="text-white hover:text-[#FFD166] transition-colors flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaLinkedin size={20} />
               <span className="hidden sm:inline">LinkedIn</span>
             </a>

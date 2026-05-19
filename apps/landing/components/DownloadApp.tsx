@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 const Downloadapp = () => {
   return (
-    <div className='bg-white py-4'>
+    <div className='bg-white py-20'>
       <div className='max-w-7xl mx-auto px-6 sm:px-8 lg:px-16'>
 
         {/* Headline */}

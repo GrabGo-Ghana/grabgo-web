@@ -39,7 +39,7 @@ export default function TriCTA() {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-16">
         <div className="mb-12 text-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[color-text-main] tracking-tight">
-            Empowering the City
+            Join Our Network
           </h1>
           <p className="mt-4 text-lg text[color-text-muted]">
             Our platform connects hungry customers, reliable riders and top-tier local vendors. 

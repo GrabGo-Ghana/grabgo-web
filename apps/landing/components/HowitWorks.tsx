@@ -8,7 +8,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-15 bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
         <h2 className="text-4xl font-black mb-4 text-[color-text-main]">Ordering made simple</h2>
         <p className="text-[color-text-muted]">From cravings to doorstep in three easy steps.</p>

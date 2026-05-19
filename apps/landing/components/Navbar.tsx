@@ -44,7 +44,7 @@ const Navbar = () => {
           {/* Right Actions */}
           <div className="flex items-center space-x-3">
             <div className="hidden lg:block">
-              <a href="#download" className="inline-flex items-center justify-center h-11.25 px-6 bg-[#fe6132] text-white font-bold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
+              <a href="#download" className="inline-flex items-center justify-center h-11.25 px-6 bg-[#fe6132] text-white font-bold rounded-full shadow-lg hover:shadow-xl">
                 Download App
               </a>
             </div>
