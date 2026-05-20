@@ -3,23 +3,43 @@ import { motion } from "framer-motion"
 import Image from "next/image"
 
 const Tracking = () => {
+
+  // Dynamic OS Routing Function
+  const handleDownloadRedirect = (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    
+    const userAgent = navigator.userAgent || navigator.vendor || ((window as any).opera || "")
+
+    // Detect iOS, iPadOS, and macOS
+    const isApple = /iPad|iPhone|iPod/.test(userAgent) || 
+                    (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+                    /Macintosh/.test(userAgent)
+
+    if (isApple) {
+      window.open('https://apps.apple.com/app/your-app-id', '_blank', 'noopener,noreferrer')
+    } else {
+      // Fallback for Android, Windows, and Linux
+      window.open('https://play.google.com/store/apps/details?id=your.package.name', '_blank', 'noopener,noreferrer')
+    }
+  }
+
   return (
-    <section id="tracking" className="w-full py-10 px-4 sm:px-8 lg:px-16 bg-white">
-      <motion.div className="max-w-360 mx-auto flex flex-col lg:flex-row items-center gap-12"
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        viewport={{ once: true }}>
-
-
+    <section id="tracking" className="w-full py-10 px-4 sm:px-8 lg:px-16 bg-white scroll-mt-24">
+      <motion.div 
+        className="max-w-360 mx-auto flex flex-col lg:flex-row items-center gap-12" 
+        initial={{ opacity: 0, y: 50 }} 
+        whileInView={{ opacity: 1, y: 0 }} 
+        transition={{ duration: 0.8, ease: "easeOut" }} 
+        viewport={{ once: true }}
+      >
         {/* Image - left on desktop, top on mobile */}
         <div className="w-full lg:w-1/2 flex justify-center">
-          <Image
-            src="/media/tracker.jpeg"
-            alt="GrabGo App Mockup"
-            width={600}
-            height={600}
-            className="w-full max-w-sm object-contain"
+          <Image 
+            src="/media/tracker.jpeg" 
+            alt="GrabGo App Mockup" 
+            width={600} 
+            height={600} 
+            className="w-full max-w-sm object-contain" 
           />
         </div>
 
@@ -34,14 +54,15 @@ const Tracking = () => {
           <p className="text-[#4b5563] text-lg leading-relaxed max-w-lg">
             Chale! Track your order live from the moment it leaves the restaurant to the second it arrives at your door. Zero guessing. Zero waiting in the dark.
           </p>
-          <a
-            href="#download"
-            className="inline-flex items-center self-start px-4 py-3 bg-[#fe6132] text-white font-medium rounded-full hover:opacity-90 transition text-lg"
+          
+          {/* Converted from link to a dynamic redirect button */}
+          <button 
+            onClick={handleDownloadRedirect}
+            className="inline-flex items-center self-start px-6 py-3 bg-[#fe6132] text-white font-medium rounded-full hover:opacity-90 transition text-lg cursor-pointer"
           >
             Download the App
-          </a>
+          </button>
         </div>
-
       </motion.div>
     </section>
   )

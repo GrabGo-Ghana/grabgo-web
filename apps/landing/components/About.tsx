@@ -38,10 +38,31 @@ export default function AboutUs() {
   topPath += `L0,${waveHeight + cornerRadius} Z`
 
   return (
-    <section id="aboutus" className="relative flex flex-col w-full my-10 px-4 sm:px-8 lg:px-16">
-      
-      {/* Mobile & Tablet - plain div, no SVG stretching */}
-      <div className="lg:hidden rounded-3xl bg-[#f59e0b] px-8 sm:px-16 py-14 flex flex-col items-center text-center gap-6">
+    <section id="about-us" className="relative flex flex-col w-full my-10 px-4 sm:px-8 lg:px-16 scroll-mt-24">
+
+      {/* Mobile & Tablet - wavy overlay edges */}
+      <div className="lg:hidden relative bg-[#f59e0b] px-8 sm:px-16 py-14 flex flex-col items-center text-center gap-6 overflow-hidden">
+
+        {/* Wavy top edge */}
+        <div className="absolute top-0 left-0 w-full">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none" className="w-full h-4">
+            <path
+              d="M0,10 Q12.5,0 25,10 Q37.5,20 50,10 Q62.5,0 75,10 Q87.5,20 100,10 Q112.5,0 125,10 Q137.5,20 150,10 Q162.5,0 175,10 Q187.5,20 200,10 Q212.5,0 225,10 Q237.5,20 250,10 Q262.5,0 275,10 Q287.5,20 300,10 Q312.5,0 325,10 Q337.5,20 350,10 Q362.5,0 375,10 Q387.5,20 400,10 L400,0 L0,0 Z"
+              fill="#fafafa"
+            />
+          </svg>
+        </div>
+
+        {/* Wavy bottom edge */}
+        <div className="absolute bottom-0 left-0 w-full">
+          <svg viewBox="0 0 400 20" preserveAspectRatio="none" className="w-full h-4">
+            <path
+              d="M0,10 Q12.5,20 25,10 Q37.5,0 50,10 Q62.5,20 75,10 Q87.5,0 100,10 Q112.5,20 125,10 Q137.5,0 150,10 Q162.5,20 175,10 Q187.5,0 200,10 Q212.5,20 225,10 Q237.5,0 250,10 Q262.5,20 275,10 Q287.5,0 300,10 Q312.5,20 325,10 Q337.5,0 350,10 Q362.5,20 375,10 Q387.5,0 400,10 L400,20 L0,20 Z"
+              fill="#fafafa"
+            />
+          </svg>
+        </div>
+
         <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-widest text-white">
           About Us
         </h1>
@@ -75,7 +96,7 @@ export default function AboutUs() {
                 About Us
               </h1>
               <p className="text-white/90 text-2xl leading-relaxed max-w-2xl">
-              GrabGo as a marketplace and logistics platform for restaurants in Ghana operates with the sole aim of making food delivery in Ghana fast, reliable and affordable. Our mission is to create value for our customers, vendors and riders across the delivery chain, thereby empowering businesses, growing local economies and satisfying consumers.
+                GrabGo was built for one reason because getting food delivered in Accra was broken. Cold meals, missing orders, riders who disappear mid-delivery. We lived it, we hated it, and we fixed it. GrabGo is Accra's fastest food delivery platform connecting hungry customers, ambitious vendors, and hardworking riders on one seamless platform built specifically for how this city moves.
               </p>
               <a href="#customers" className="mt-2 inline-flex items-center px-8 py-3 bg-white text-[#fe6132] font-bold rounded-full hover:opacity-90 transition text-lg">
                 Order Now

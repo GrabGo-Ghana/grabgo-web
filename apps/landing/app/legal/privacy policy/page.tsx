@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HomeNavbar } from "@/components/Navbar";
+import HomeNavbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "GrabGo | Privacy Policy",
 };
 
-const LEGAL_NAV = [
-  { href: "/services", label: "How it Works" },
-  { href: "/vendor", label: "Vendors" },
-  { href: "/rider", label: "Riders" },
-];
 
 const tocItems = [
   { href: "#introduction", label: "Introduction" },

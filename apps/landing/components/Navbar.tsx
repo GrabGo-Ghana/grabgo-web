@@ -2,15 +2,8 @@
 import { useState, useEffect } from "react"
 
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-const Navlinks = [
-  { name: "#about", label: "About Us"},
-  { name: "vendors", label: "Vendors"},
-  { name: "riders", label: "Riders"},
-  {name: "faqs", label: "FAQS"}
-]
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
@@ -18,14 +11,36 @@ const Navlinks = [
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Dynamic OS Routing Function
+  const handleDownloadRedirect = (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
+
+    // Detect iOS, iPadOS, and macOS
+    const isApple = /iPad|iPhone|iPod/.test(userAgent) || 
+                    (navigator.maxTouchPoints && navigator.maxTouchPoints > 2) ||
+                    /Macintosh/.test(userAgent)
+
+    if (isApple) {
+      window.open('https://apps.apple.com/app/your-app-id', '_blank', 'noopener,noreferrer')
+    } else {
+      // Fallback for Android, Windows, and Linux
+      window.open('https://play.google.com/store/apps/details?id=your.package.name', '_blank', 'noopener,noreferrer')
+    }
+    
+    // Close mobile menu if open
+    setMobileMenuOpen(false)
+  }
+
   return (
     <>
       <header className={`fixed top-0 left-0 w-full z-50 transition-colors py-6 `}>
         <div className="max-w-360 mx-auto px-6 lg:px-20 flex items-center justify-between">
-
+          
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <a href="/" className="flex items-center space-x-2 bg-[#fe6132] text-white px-5 h-11.25 rounded-full font-extrabold text-xl tracking-tight ">
+            <a href="/" className="flex items-center space-x-2 bg-[#fe6132] text-white px-5 h-11 rounded-full font-extrabold text-xl tracking-tight ">
               <img src="/media/logo.svg" alt="GrabGO" className="w-6 h-6 object-contain rounded-md" style={{ filter: 'brightness(0) invert(1)' }} />
               <span className="hidden sm:inline">GrabGo</span>
             </a>
@@ -36,10 +51,7 @@ const Navlinks = [
             <ul className="bg-white rounded-full flex items-center px-2 h-14 shadow-sm border border-gray-100">
               {['About Us', 'Vendors', 'Riders', 'FAQs'].map((item) => (
                 <li key={item} className="relative group flex items-center h-full">
-                  <a
-                    className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-[#111827] transition-colors duration-300 group-hover:text-white"
-                    href={`#${item.toLowerCase().replace(' ', '-')}`}
-                  >
+                  <a className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-[#111827] transition-colors duration-300 group-hover:text-white" href={`#${item.toLowerCase().replace(' ', '-')}`} >
                     {item}
                   </a>
                   <div className="absolute inset-y-1.5 inset-x-1 bg-[#fe6132] rounded-full scale-95 opacity-0 transition-all duration-300 ease-out group-hover:scale-100 group-hover:opacity-100 z-0"></div>
@@ -51,14 +63,15 @@ const Navlinks = [
           {/* Right Actions */}
           <div className="flex items-center space-x-3">
             <div className="hidden lg:block">
-              <a href="#download" className="inline-flex items-center justify-center h-11.25 px-6 bg-[#fe6132] text-white font-bold rounded-full shadow-lg hover:shadow-xl">
+              <button 
+                onClick={handleDownloadRedirect}
+                className="inline-flex items-center justify-center h-11 px-6 bg-[#fe6132] text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+              >
                 Download App
-              </a>
+              </button>
             </div>
-            <button
-              className="lg:hidden bg-[#fe6132] text-white w-12 h-12 rounded-full flex items-center justify-center"
-              onClick={() => setMobileMenuOpen(true)}
-            >
+            
+            <button className="lg:hidden bg-[#fe6132] text-white w-12 h-12 rounded-full flex items-center justify-center" onClick={() => setMobileMenuOpen(true)} >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <line x1="3" y1="12" x2="21" y2="12" />
                 <line x1="3" y1="6" x2="21" y2="6" />
@@ -74,31 +87,28 @@ const Navlinks = [
       <div className={`fixed inset-0 bg-black text-white z-1000 overflow-y-auto scrollbar-hide transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
           <div className="sticky top-0 w-full bg-black flex items-center justify-end p-6 border-b border-white/20">
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-            >
+            <button onClick={() => setMobileMenuOpen(false)} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors" >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
+          
           <div className="flex flex-col pt-4">
             {['Customers', 'Vendors', 'Riders', 'FAQs', 'About Us', 'Contact'].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(/ /g, '-')}`}
-                className="flex items-center text-xl font-medium h-20 pl-10 border-b border-white/20 hover:bg-[#fe6132] transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <a key={item} href={`#${item.toLowerCase().replace(/ /g, '-')}`} className="flex items-center text-xl font-medium h-20 pl-10 border-b border-white/20 hover:bg-[#fe6132] transition-colors" onClick={() => setMobileMenuOpen(false)} >
                 {item}
               </a>
             ))}
+            
             <div className="p-10">
-              <a href="#download" className="flex items-center justify-center w-full px-6 py-4 bg-[#fe6132] text-white font-bold rounded-full hover:opacity-90 transition">
+              <button 
+                onClick={handleDownloadRedirect}
+                className="flex items-center justify-center w-full px-6 py-4 bg-[#fe6132] text-white font-bold rounded-full hover:opacity-90 transition cursor-pointer"
+              >
                 Download App
-              </a>
+              </button>
             </div>
           </div>
         </div>

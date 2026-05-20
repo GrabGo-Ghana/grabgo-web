@@ -2,56 +2,58 @@ import Image from "next/image"
 import { FaApple, FaGooglePlay, FaXTwitter, FaInstagram, FaFacebook, FaLinkedin } from "react-icons/fa6"
 
 const footerLinks = [
-  {
-    title: "Company",
-    links: ["About Us", "Customers", "Vendors", "Riders"]
-  },
-  {
-    title: "Help & Support",
-    links: ["FAQ", "Contact Us"]
-  },
-  {
-    title: "Legal",
-    links: ["Privacy Policy", "Terms and Conditions", "Cookie Policy"]
-  }
+  { title: "Company", links: ["About Us", "Customers", "Vendors", "Riders"] },
+  { title: "Help & Support", links: ["FAQ", "Contact Us"] },
+  { title: "Legal", links: ["Privacy Policy", "Terms and Conditions", "Cookie Policy"] }
 ]
 
 export default function Footer() {
+  
+  // Helper to map UI link strings cleanly to section component IDs
+  const mapLinkToId = (link: string) => {
+    switch (link) {
+      case "About Us": return "#about-us";
+      case "FAQ": return "#faqs";
+      case "Contact Us": return "#contact";
+      default: return `#${link.toLowerCase().replace(/ /g, "-")}`;
+    }
+  }
+
   return (
     <footer className="bg-[#fe6132] text-white pt-20 relative">
       {/* Umbrella Curve Decorative Edge */}
       <div className="umbrella-curve-footer"></div>
-
+      
       <div className="max-w-360 mx-auto px-6 lg:px-20">
-
+        
         {/* Top Section */}
         <div className="lg:flex border-b border-white/20 pb-16">
           <div className="flex flex-col lg:w-[35%] lg:pr-8 mb-12 lg:mb-0">
             <div className="w-20 h-20 mb-6">
-              <Image
-                src="/media/logo.svg"
-                alt="GrabGo App Icon"
-                width={50}
-                height={50}
-                className="w-full h-full object-contain rounded-[18px] shadow-sm"
-                style={{ filter: 'brightness(0) invert(1)' }}
+              <Image 
+                src="/media/logo.svg" 
+                alt="GrabGo App Icon" 
+                width={50} 
+                height={50} 
+                className="w-full h-full object-contain rounded-[18px] shadow-sm" 
+                style={{ filter: 'brightness(0) invert(1)' }} 
               />
             </div>
             <div>
               <h2 className="text-4xl font-extrabold text-white tracking-tight">GrabGo</h2>
               <p className="text-white/80 mt-2 font-medium">Whenever you want it.</p>
             </div>
-
+            
             {/* App Download Badges */}
             <div className="flex flex-wrap gap-4 mt-8">
-              <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
+              <a href="https://apps.apple.com/app/your-app-id" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
                 <FaApple size={24} />
                 <div className="flex flex-col text-left">
                   <span className="text-[10px] leading-none text-gray-300 mb-1">Download on the</span>
                   <span className="text-sm font-semibold leading-none tracking-wide">App Store</span>
                 </div>
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
+              <a href="https://play.google.com/store/apps/details?id=your.package.name" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
                 <FaGooglePlay size={24} />
                 <div className="flex flex-col text-left">
                   <span className="text-[10px] leading-none text-gray-300 mb-1">GET IT ON</span>
@@ -69,7 +71,10 @@ export default function Footer() {
                   <ul className="grid gap-4">
                     {col.links.map((link, lIdx) => (
                       <li key={lIdx}>
-                        <a href="#" className="text-white/90 hover:text-white hover:underline font-medium transition-colors">
+                        <a 
+                          href={mapLinkToId(link)} 
+                          className="text-white/90 hover:text-white hover:underline font-medium transition-colors"
+                        >
                           {link}
                         </a>
                       </li>
@@ -87,15 +92,15 @@ export default function Footer() {
             © 2026 GrabGo. All rights reserved.
           </p>
           <div className="flex items-center space-x-6">
-            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
+            <a href="https://x.com/grab_gogh" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaXTwitter size={20} />
               <span className="hidden sm:inline">Twitter</span>
             </a>
-            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
+            <a href="https://www.instagram.com/grabgologistics?igsh=NHYwYjE4aHB0aG1y" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaInstagram size={20} />
               <span className="hidden sm:inline">Instagram</span>
             </a>
-            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
+            <a href="https://www.facebook.com/profile.php?id=61590088554621" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaFacebook size={20} />
               <span className="hidden sm:inline">Facebook</span>
             </a>
