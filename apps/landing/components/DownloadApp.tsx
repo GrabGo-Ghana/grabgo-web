@@ -10,7 +10,7 @@ const Downloadapp = () => {
 
         {/* Headline */}
         <motion.h2
-          className='text-3xl sm:text-4xl lg:text-5xl text-center text-[color-text-main] font-black mb-4 tracking-tight'
+          className='text-3xl sm:text-4xl lg:text-5xl text-center text-[#111827] font-black mb-4 tracking-tight'
           initial={{ opacity: 0, filter: 'blur(12px)' }}
           whileInView={{ opacity: 1, filter: 'blur(0px)' }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -21,7 +21,7 @@ const Downloadapp = () => {
 
         {/* Paragraph */}
         <motion.p
-          className='text-lg text-center text-[color-text-muted] max-w-xl mx-auto'
+          className='text-lg text-center text-[#4b5563] max-w-xl mx-auto'
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}

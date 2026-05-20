@@ -28,10 +28,10 @@ const Tracking = () => {
           <p className="text-[#fe6132]/90 text-sm font-black uppercase tracking-tight">
             Real-Time Tracking
           </p>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[color-text-main] tracking-tight leading-tight">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#111827] tracking-tight leading-tight">
             Know exactly where your order is.
           </h2>
-          <p className="text-[color-text-muted] text-lg leading-relaxed max-w-lg">
+          <p className="text-[#4b5563] text-lg leading-relaxed max-w-lg">
             Chale! Track your order live from the moment it leaves the restaurant to the second it arrives at your door. Zero guessing. Zero waiting in the dark.
           </p>
           <a

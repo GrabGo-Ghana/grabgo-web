@@ -8,6 +8,7 @@ import DownloadApp from "@/components/DownloadApp"
 import Tracking from "@/components/Tracking"
 import Contacts from "@/components/Contacts"
 import About from "@/components/About"
+import AboutUs from "@/components/About"
 
 
 export default function HomePage() {
@@ -18,20 +19,20 @@ export default function HomePage() {
         <section id="home">
           <Hero />
         </section>
-        <section id="riders">
+        <section id="download">
           <DownloadApp />
         </section>
-        <section id="vendors">
+        <section id="howitworks">
           <HowItWorks />
         </section>
-        <section id="tracking">
+        <section id="vendors">
           <Tracking />
         </section>
         <section id="riders">
           <TriCTA />
         </section>
-        <section id="about">
-          <About />
+        <section id="about us">
+          <AboutUs />
         </section>
         <section id="faq">
           <FAQ />

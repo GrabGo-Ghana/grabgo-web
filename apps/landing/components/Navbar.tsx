@@ -5,6 +5,13 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+const Navlinks = [
+  { name: "#about", label: "About Us"},
+  { name: "vendors", label: "Vendors"},
+  { name: "riders", label: "Riders"},
+  {name: "faqs", label: "FAQS"}
+]
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
@@ -20,7 +27,7 @@ const Navbar = () => {
           <div className="flex items-center space-x-3">
             <a href="/" className="flex items-center space-x-2 bg-[#fe6132] text-white px-5 h-11.25 rounded-full font-extrabold text-xl tracking-tight ">
               <img src="/media/logo.svg" alt="GrabGO" className="w-6 h-6 object-contain rounded-md" style={{ filter: 'brightness(0) invert(1)' }} />
-              <span className="hidden sm:inline">GrabGO</span>
+              <span className="hidden sm:inline">GrabGo</span>
             </a>
           </div>
 
@@ -30,7 +37,7 @@ const Navbar = () => {
               {['About Us', 'Vendors', 'Riders', 'FAQs'].map((item) => (
                 <li key={item} className="relative group flex items-center h-full">
                   <a
-                    className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-gray-600 transition-colors duration-300 group-hover:text-white"
+                    className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-[#111827] transition-colors duration-300 group-hover:text-white"
                     href={`#${item.toLowerCase().replace(' ', '-')}`}
                   >
                     {item}

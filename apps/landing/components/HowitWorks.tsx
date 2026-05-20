@@ -10,8 +10,8 @@ export default function HowItWorks() {
   return (
     <section className="py-15 bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-        <h2 className="text-4xl font-black mb-4 text-[color-text-main]">Ordering made simple</h2>
-        <p className="text-[color-text-muted]">From cravings to doorstep in three easy steps.</p>
+        <h2 className="text-4xl font-black mb-4 text-[#111827]">Ordering made simple</h2>
+        <p className="text-[#4b5563]">From cravings to doorstep in three easy steps.</p>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="hidden lg:block absolute top-1/2 left-0 w-full h-0.5 bg-[#fe6132] -translate-y-12" />
@@ -25,7 +25,7 @@ export default function HowItWorks() {
                 <Icon className="w-10 h-10 text-[#fe6132]" />
               </div>
               <h3 className="text-xl font-bold mb-4">{label}</h3>
-              <p className="text-[color-text-muted]">{desc}</p>
+              <p className="text-[#4b5563]">{desc}</p>
             </div>
           ))}
         </div>
