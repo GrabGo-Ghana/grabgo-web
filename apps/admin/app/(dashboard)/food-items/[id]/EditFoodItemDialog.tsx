@@ -87,7 +87,7 @@ export function EditFoodItemDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Food Item</DialogTitle>
                     <DialogDescription>
@@ -230,7 +230,7 @@ export function EditFoodItemDialog({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 text-white hover:opacity-90"
+                            className="bg-linear-to-br from-[#FE6132] to-[#FE6132]/80 text-white hover:opacity-90"
                         >
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </Button>
