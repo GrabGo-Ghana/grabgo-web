@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import Link from "next/link"
 
 const Navbar = () => {
   const [, setIsScrolled] = useState(false)
@@ -51,7 +52,7 @@ const Navbar = () => {
             <ul className="bg-white rounded-full flex items-center px-2 h-14 shadow-sm border border-gray-100">
               {['About Us', 'Vendors', 'Riders', 'FAQs'].map((item) => (
                 <li key={item} className="relative group flex items-center h-full">
-                  <a className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-[#111827] transition-colors duration-300 group-hover:text-white" href={`#${item.toLowerCase().replace(' ', '-')}`} >
+                  <a className="relative z-10 py-2 px-6 text-center inline-block font-semibold text-[#111827] transition-colors duration-300 group-hover:text-white" href={`/#${item.toLowerCase().replace(' ', '-')}`} >
                     {item}
                   </a>
                   <div className="absolute inset-y-1.5 inset-x-1 bg-[#fe6132] rounded-full scale-95 opacity-0 transition-all duration-300 ease-out group-hover:scale-100 group-hover:opacity-100 z-0"></div>
@@ -97,7 +98,7 @@ const Navbar = () => {
           
           <div className="flex flex-col pt-4">
             {['Customers', 'Vendors', 'Riders', 'FAQs', 'About Us', 'Contact'].map((item) => (
-              <a key={item} href={`#${item.toLowerCase().replace(/ /g, '-')}`} className="flex items-center text-xl font-medium h-20 pl-10 border-b border-white/20 hover:bg-[#fe6132] transition-colors" onClick={() => setMobileMenuOpen(false)} >
+              <a key={item} href={`/#${item.toLowerCase().replace(/ /g, '-')}`} className="flex items-center text-xl font-medium h-20 pl-10 border-b border-white/20 hover:bg-[#fe6132] transition-colors" onClick={() => setMobileMenuOpen(false)} >
                 {item}
               </a>
             ))}

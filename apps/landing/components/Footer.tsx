@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link" 
 import { FaApple, FaGooglePlay, FaXTwitter, FaInstagram, FaFacebook, FaLinkedin } from "react-icons/fa6"
 
 const footerLinks = [
@@ -9,13 +10,24 @@ const footerLinks = [
 
 export default function Footer() {
   
-  // Helper to map UI link strings cleanly to section component IDs
-  const mapLinkToId = (link: string) => {
+  // Smart helper to handle both file paths (Legal) and absolute home anchors (Sections)
+  const mapLinkToPath = (link: string, columnTitle: string) => {
+    // If it's under the Legal column, route to an actual file page route
+    if (columnTitle === "Legal") {
+      switch (link) {
+        case "Privacy Policy": return "legal/privacy-policy";
+        case "Terms and Conditions": return "legal/terms";
+        case "Cookie Policy": return "legal/cookie-policy";
+        default: return `/${link.toLowerCase().replace(/ /g, "-")}`;
+      }
+    }
+
+
     switch (link) {
-      case "About Us": return "#about-us";
-      case "FAQ": return "#faqs";
-      case "Contact Us": return "#contact";
-      default: return `#${link.toLowerCase().replace(/ /g, "-")}`;
+      case "About Us": return "/#about-us";
+      case "FAQ": return "/#faqs";
+      case "Contact Us": return "/#contact";
+      default: return `/#${link.toLowerCase().replace(/ /g, "-")}`;
     }
   }
 
@@ -46,14 +58,14 @@ export default function Footer() {
             
             {/* App Download Badges */}
             <div className="flex flex-wrap gap-4 mt-8">
-              <a href="https://apps.apple.com/app/your-app-id" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
+              <a href="https://apple.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
                 <FaApple size={24} />
                 <div className="flex flex-col text-left">
                   <span className="text-[10px] leading-none text-gray-300 mb-1">Download on the</span>
                   <span className="text-sm font-semibold leading-none tracking-wide">App Store</span>
                 </div>
               </a>
-              <a href="https://play.google.com/store/apps/details?id=your.package.name" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
+              <a href="https://google.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-md border border-white/10 hover:border-white/30">
                 <FaGooglePlay size={24} />
                 <div className="flex flex-col text-left">
                   <span className="text-[10px] leading-none text-gray-300 mb-1">GET IT ON</span>
@@ -71,12 +83,13 @@ export default function Footer() {
                   <ul className="grid gap-4">
                     {col.links.map((link, lIdx) => (
                       <li key={lIdx}>
-                        <a 
-                          href={mapLinkToId(link)} 
+                        {/* Converted <a> to <Link> for client-side prefetching and smooth transitions */}
+                        <Link 
+                          href={mapLinkToPath(link, col.title)} 
                           className="text-white/90 hover:text-white hover:underline font-medium transition-colors"
                         >
                           {link}
-                        </a>
+                        </Link>
                       </li>
                     ))}
                   </ul>
@@ -92,15 +105,15 @@ export default function Footer() {
             © 2026 GrabGo. All rights reserved.
           </p>
           <div className="flex items-center space-x-6">
-            <a href="https://x.com/grab_gogh" className="text-[#ffd166] flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaXTwitter size={20} />
               <span className="hidden sm:inline">Twitter</span>
             </a>
-            <a href="https://www.instagram.com/grabgologistics?igsh=NHYwYjE4aHB0aG1y" className="text-[#ffd166] flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaInstagram size={20} />
               <span className="hidden sm:inline">Instagram</span>
             </a>
-            <a href="https://www.facebook.com/profile.php?id=61590088554621" className="text-[#ffd166] flex items-center gap-2 font-semibold">
+            <a href="#" className="text-[#ffd166] flex items-center gap-2 font-semibold">
               <FaFacebook size={20} />
               <span className="hidden sm:inline">Facebook</span>
             </a>
