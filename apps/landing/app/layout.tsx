@@ -38,6 +38,27 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "GrabGo Ghana",
+  alternateName: ["GrabGo", "GrabGo GH"],
+  url: "https://grabgogh.app",
+  logo: "https://grabgogh.app/media/logo.svg",
+  description:
+    "GrabGo is a Ghanaian delivery platform helping customers order food, vendors manage deliveries, and riders earn through fast local delivery.",
+  email: "hello@grabgogh.app",
+  areaServed: {
+    "@type": "Country",
+    name: "Ghana",
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "GH",
+    addressLocality: "Accra",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -45,7 +66,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
