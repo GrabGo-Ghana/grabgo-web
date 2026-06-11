@@ -27,13 +27,13 @@
   --font-sans: var(--font-lato);
   --font-mono: var(--font-lato);
 
-  --radius-md: var(--radius);
-  --radius-lg: calc(var(--radius) + 2px);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0;
 
   /* GrabGo Brand Colors - Light Mode (HSL fragments) */
   --background: 0 0% 98%;
@@ -79,6 +79,7 @@
 @layer base {
   * {
     border-color: hsl(var(--border));
+    border-radius: 0 !important; font :important;
   }
 
   body {

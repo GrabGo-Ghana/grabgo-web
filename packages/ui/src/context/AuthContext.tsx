@@ -2,11 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { authService } from '@grabgo/utils';
-import type { User, AuthState, LoginCredentials } from '@grabgo/utils';
+import type { User, AuthState, LoginCredentials, AuthResponse } from '@grabgo/utils';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType extends AuthState {
-    login: (credentials: LoginCredentials) => Promise<void>;
+    login: (credentials: LoginCredentials) => Promise<AuthResponse | void>;
+    verifyMfa: (mfaChallengeToken: string, otp: string) => Promise<AuthResponse | void>;
     logout: () => Promise<void>;
     refreshUser: () => Promise<void>;
 }
@@ -50,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const { user } = await authService.getCurrentUser();
 
                     // Check if user is admin (case-insensitive)
-                    if (user.role?.toLowerCase() !== 'admin' && !user.isAdmin) {
+                    if (!user || (user.role?.toLowerCase() !== 'admin' && !user.isAdmin)) {
                         throw new Error('Unauthorized: Admin access required');
                     }
 
@@ -94,7 +95,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (credentials: LoginCredentials) => {
         try {
-            const { user, token } = await authService.login(credentials);
+            const res = await authService.login(credentials);
+
+            if (res.requiresMfa) {
+                return res;
+            }
+
+            const { user, token } = res;
+            if (!user || !token) {
+                throw new Error('Invalid authentication response');
+            }
 
             // Verify user is admin (case-insensitive)
             if (user.role?.toLowerCase() !== 'admin' && !user.isAdmin) {
@@ -110,6 +120,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // Redirect to dashboard
             router.push('/');
+            return res;
+        } catch (error) {
+            setState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+            });
+            throw error;
+        }
+    };
+
+    const verifyMfa = async (mfaChallengeToken: string, otp: string) => {
+        try {
+            const res = await authService.verifyMfa(mfaChallengeToken, otp);
+            const { user, token } = res;
+
+            if (!user || !token) {
+                throw new Error('Invalid verification response');
+            }
+
+            setState({
+                user,
+                isAuthenticated: true,
+                isLoading: false,
+            });
+
+            router.push('/');
+            return res;
         } catch (error) {
             setState({
                 user: null,
@@ -144,10 +182,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshUser = async () => {
         try {
             const { user } = await authService.getCurrentUser();
-            setState(prev => ({
-                ...prev,
-                user,
-            }));
+            setState(prev => {
+                if (!user) return prev;
+
+                const updatedUser = {
+                    ...prev.user,
+                    ...user,
+                };
+
+                return {
+                    ...prev,
+                    user: updatedUser,
+                };
+            });
         } catch (error) {
             // If refresh fails, log out (protected by race condition flag)
             await logout();
@@ -159,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             value={{
                 ...state,
                 login,
+                verifyMfa,
                 logout,
                 refreshUser,
             }}
@@ -174,4 +222,11 @@ export function useAuth() {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
+}
+
+export function hasPermission(user: User | null, permission: string | string[]): boolean {
+    if (!user) return false;
+    if (user.isSuperAdmin) return true;
+    const list = Array.isArray(permission) ? permission : [permission];
+    return list.some(p => (user as any)[p] === true);
 }

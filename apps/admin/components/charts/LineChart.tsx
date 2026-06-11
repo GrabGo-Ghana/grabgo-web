@@ -32,9 +32,7 @@ export function LineChart({ data, xKey, yKey, color = "#FE6132", height = 300 }:
                     contentStyle={{
                         backgroundColor: "hsl(var(--card))",
                         border: "1px solid hsl(var(--border))",
-                        borderRadius: "12px",
                         padding: "8px 12px",
-                        boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
                     }}
                     labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
                     itemStyle={{ color: "hsl(var(--muted-foreground))" }}

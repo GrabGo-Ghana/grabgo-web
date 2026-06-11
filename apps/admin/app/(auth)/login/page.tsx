@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import ReCAPTCHA from "react-google-recaptcha";
 import { Button, Input, Label, Card, useAuth } from "@grabgo/ui";
 import { authService } from "@grabgo/utils";
 import { ShieldCheck, WarningCircle, EyeClosed, Eye, NavArrowRight, Mail, Lock } from "iconoir-react";
@@ -15,9 +16,16 @@ export default function LoginPage() {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
-  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  const { login, verifyMfa, isAuthenticated, isLoading: authLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  const [requiresMfa, setRequiresMfa] = useState(false);
+  const [mfaChallengeToken, setMfaChallengeToken] = useState("");
+  const [otpCode, setOtpCode] = useState("");
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -36,28 +44,50 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Client-side validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!email || !emailRegex.test(email)) {
-        throw new Error('Please enter a valid email address');
-      }
-
-      if (!isForgotPassword && (!password || password.length < 6)) {
-        throw new Error('Password must be at least 6 characters');
-      }
-
       if (isForgotPassword) {
-        // Handle password reset
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          throw new Error('Please enter a valid email address');
+        }
         await authService.forgotPassword({ email });
         setResetEmailSent(true);
+      } else if (requiresMfa) {
+        if (!otpCode || otpCode.length !== 6) {
+          throw new Error('Please enter a valid 6-digit security code');
+        }
+        await verifyMfa(mfaChallengeToken, otpCode);
       } else {
-        // Handle login
-        await login({ email, password });
-        // Redirect handled by AuthContext
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+          throw new Error('Please enter a valid email address');
+        }
+        if (!password || password.length < 6) {
+          throw new Error('Password must be at least 6 characters');
+        }
+        if (!recaptchaToken) {
+          throw new Error('Please complete the reCAPTCHA verification');
+        }
+        const res = await login({ email, password, role: 'admin', recaptchaToken: recaptchaToken || undefined });
+        if (res && res.requiresMfa && res.mfaChallengeToken) {
+          setRequiresMfa(true);
+          setMfaChallengeToken(res.mfaChallengeToken);
+          setOtpCode("");
+          setError(null);
+          // Reset reCAPTCHA since the token was consumed
+          if (recaptchaRef.current) {
+            recaptchaRef.current.reset();
+          }
+          setRecaptchaToken(null);
+        }
       }
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : 'An error occurred';
       setError(errorMsg);
+      // Reset reCAPTCHA on failed login
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+        setRecaptchaToken(null);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -88,10 +118,9 @@ export default function LoginPage() {
             {/* Logo with unique animation */}
             <div className="inline-flex items-center space-x-3 group">
               <div className="relative">
-                <div className="w-14 h-14 rounded-md flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #FE6132, #ff7f50)', boxShadow: '0 10px 25px rgba(254, 97, 50, 0.3)' }}>
+                <div className="w-14 h-14 rounded-none flex items-center justify-center transition-colors duration-300" style={{ background: '#FE6132' }}>
                   <ShieldCheck className="w-8 h-8 text-white" strokeWidth={2} />
                 </div>
-                <div className="absolute inset-0 rounded-md bg-primary/20 blur-xl group-hover:blur-2xl transition-all duration-300" />
               </div>
             </div>
 
@@ -116,7 +145,7 @@ export default function LoginPage() {
             ].map((stat, i) => (
               <Card
                 key={i}
-                className="p-4 border-primary/20 bg-card/60 backdrop-blur-sm hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 animate-fade-in-up"
+                className="p-4 border-primary/20 bg-card/60 hover:border-primary/40 transition-all duration-300 animate-fade-in-up"
                 style={{ animationDelay: stat.delay }}
               >
                 <div className="text-3xl font-bold" style={{ color: '#FE6132' }}>{stat.value}</div>
@@ -128,7 +157,7 @@ export default function LoginPage() {
 
         {/* Right Side - Login Form */}
         <div className="w-full max-w-md mx-auto animate-fade-in-right">
-          <Card className="p-8 border-primary/20 bg-card/90 backdrop-blur-xl shadow-2xl shadow-primary/10 hover:shadow-primary/15 transition-shadow duration-300">
+          <Card className="p-8 border-primary/20 bg-card">
             <div
               key={isForgotPassword ? (resetEmailSent ? 'success' : 'forgot') : 'login'}
               className="space-y-6 animate-fade-in"
@@ -150,23 +179,19 @@ export default function LoginPage() {
               {/* Error Message */}
               {error && (
                 <div
-                  className="rounded-md p-4 animate-fade-in"
-                  style={{
-                    backgroundColor: 'rgba(254, 242, 242, 0.5)',
-                    border: '1px solid rgba(254, 226, 226, 0.8)'
-                  }}
+                  className="rounded-none p-4 animate-fade-in border border-red-200/80 dark:border-red-900/30 bg-red-50/50 dark:bg-red-950/20"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
-                      <WarningCircle className="w-5 h-5 mt-0.5" style={{ color: '#f87171' }} strokeWidth={2} />
+                      <WarningCircle className="w-5 h-5 mt-0.5 text-red-500 dark:text-red-400" strokeWidth={2} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold" style={{ color: '#dc2626' }}>
+                      <h3 className="text-sm font-semibold text-red-800 dark:text-red-200">
                         {error.includes('CORS') || error.includes('Network') || error.includes('Failed to fetch')
                           ? 'Connection Error'
                           : 'Authentication Failed'}
                       </h3>
-                      <p className="mt-1 text-sm" style={{ color: '#ef4444' }}>
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-300">
                         {error.includes('CORS') || error.includes('Network') || error.includes('Failed to fetch')
                           ? 'Unable to connect to the server. Please check your internet connection or try again later.'
                           : error}
@@ -178,106 +203,162 @@ export default function LoginPage() {
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Email Field */}
-                <div className="space-y-2 group">
-                  <Label htmlFor="email" className="text-sm font-medium">
-                    Email Address
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="admin@grabgo.com"
-                      value={email}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                      className="h-11 pl-10 border-input transition-all duration-200"
-                      style={{
-                        outline: 'none',
-                      }}
-                      onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                        e.target.style.borderColor = '#FE6132';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(254, 97, 50, 0.15), 0 0 20px rgba(254, 97, 50, 0.1)';
-                      }}
-                      onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                        e.target.style.borderColor = '';
-                        e.target.style.boxShadow = '';
-                      }}
-                      required
-                    />
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" strokeWidth={2} />
+                {requiresMfa ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2 group">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="otpCode" className="text-sm font-medium">
+                          Security OTP Code
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRequiresMfa(false);
+                            setMfaChallengeToken("");
+                            setOtpCode("");
+                            setError(null);
+                            // Reset reCAPTCHA on going back to credentials
+                            if (recaptchaRef.current) {
+                              recaptchaRef.current.reset();
+                            }
+                            setRecaptchaToken(null);
+                          }}
+                          className="text-xs font-medium transition-colors"
+                          style={{ color: '#FE6132' }}
+                        >
+                          Back to Sign In
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <Input
+                          id="otpCode"
+                          type="text"
+                          maxLength={6}
+                          placeholder="Enter 6-digit MFA code"
+                          value={otpCode}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                          className="h-11 pl-10 text-center font-bold tracking-widest text-lg border-input transition-all duration-200"
+                          style={{ outline: 'none' }}
+                          onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                            e.target.style.borderColor = '#FE6132';
+                          }}
+                          onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                            e.target.style.borderColor = '';
+                          }}
+                          required
+                        />
+                        <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" strokeWidth={2} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-
-                {/* Password Field - Only show for login */}
-                {!isForgotPassword && !resetEmailSent && (
-                  <div className="space-y-2 group">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="password" className="text-sm font-medium">
-                        Password
+                ) : (
+                  <>
+                    {/* Email Field */}
+                    <div className="space-y-2 group">
+                      <Label htmlFor="email" className="text-sm font-medium">
+                        Email Address
                       </Label>
-                      <button
-                        type="button"
-                        onClick={handleForgotPasswordClick}
-                        className="text-xs font-medium transition-colors"
-                        style={{ color: '#FE6132' }}
-                      >
-                        Forgot password?
-                      </button>
+                      <div className="relative">
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="admin@grabgo.com"
+                          value={email}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                          className="h-11 pl-10 border-input transition-all duration-200"
+                          style={{ outline: 'none' }}
+                          onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                            e.target.style.borderColor = '#FE6132';
+                          }}
+                          onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                            e.target.style.borderColor = '';
+                          }}
+                          required
+                        />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" strokeWidth={2} />
+                      </div>
                     </div>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                        className="h-11 pl-10 pr-10 border-input transition-all duration-200"
-                        style={{
-                          outline: 'none',
-                        }}
-                        onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                          e.target.style.borderColor = '#FE6132';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(254, 97, 50, 0.15), 0 0 20px rgba(254, 97, 50, 0.1)';
-                        }}
-                        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                          e.target.style.borderColor = '';
-                          e.target.style.boxShadow = '';
-                        }}
-                        required
-                      />
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" strokeWidth={2} />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        {showPassword ? (
-                          <EyeClosed className="w-5 h-5" strokeWidth={2} />
-                        ) : (
-                          <Eye className="w-5 h-5" strokeWidth={2} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
+
+                    {/* Password Field - Only show for login */}
+                    {!isForgotPassword && !resetEmailSent && (
+                      <div className="space-y-2 group">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="password" className="text-sm font-medium">
+                            Password
+                          </Label>
+                          <button
+                            type="button"
+                            onClick={handleForgotPasswordClick}
+                            className="text-xs font-medium transition-colors"
+                            style={{ color: '#FE6132' }}
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                            className="h-11 pl-10 pr-10 border-input transition-all duration-200"
+                            style={{ outline: 'none' }}
+                            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                              e.target.style.borderColor = '#FE6132';
+                            }}
+                            onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                              e.target.style.borderColor = '';
+                            }}
+                            required
+                          />
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" strokeWidth={2} />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {showPassword ? (
+                              <EyeClosed className="w-5 h-5" strokeWidth={2} />
+                            ) : (
+                              <Eye className="w-5 h-5" strokeWidth={2} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Google reCAPTCHA Checkbox Widget */}
+                    {!isForgotPassword && !resetEmailSent && (
+                      <div className="flex justify-center py-2 animate-fade-in">
+                        <ReCAPTCHA
+                          ref={recaptchaRef}
+                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+                          onChange={(token) => setRecaptchaToken(token)}
+                          theme="light"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Submit Button with unique loading animation */}
                 {!resetEmailSent ? (
                   <Button
                     type="submit"
-                    className="w-full h-11 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
-                    style={{ background: 'linear-gradient(135deg, #FE6132 0%, #ff7f50 100%)', boxShadow: '0 4px 14px rgba(254, 97, 50, 0.25)' }}
+                    className="w-full h-11 text-white font-medium transition-all duration-300 relative overflow-hidden group"
+                    style={{ background: '#FE6132' }}
                     disabled={isLoading}
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       {isLoading ? (
                         <>
                           <Loader2 className="animate-spin h-5 w-5" />
-                          {isForgotPassword ? "Sending link..." : "Signing in..."}
+                          {isForgotPassword ? "Sending link..." : requiresMfa ? "Verifying..." : "Signing in..."}
                         </>
                       ) : (
                         <>
-                          {isForgotPassword ? "Send reset link" : "Sign in"}
+                          {isForgotPassword ? "Send reset link" : requiresMfa ? "Verify & Sign in" : "Sign in"}
                           <NavArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" strokeWidth={2} />
                         </>
                       )}
@@ -288,8 +369,8 @@ export default function LoginPage() {
                   <Button
                     type="button"
                     onClick={handleBackToLogin}
-                    className="w-full h-11 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
-                    style={{ background: 'linear-gradient(135deg, #FE6132 0%, #ff7f50 100%)', boxShadow: '0 4px 14px rgba(254, 97, 50, 0.25)' }}
+                    className="w-full h-11 text-white font-medium transition-all duration-300 relative overflow-hidden group"
+                    style={{ background: '#FE6132' }}
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
                       <NavArrowRight className="w-4 h-4 rotate-180" strokeWidth={2} />
@@ -327,7 +408,7 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mt-8 animate-fade-in">
             <div className="inline-flex items-center space-x-2 text-muted-foreground">
-              <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-none bg-primary/10 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5 text-primary" strokeWidth={2} />
               </div>
               <span className="text-sm font-medium">GrabGo Admin</span>

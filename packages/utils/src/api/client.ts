@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -49,4 +49,5 @@ apiClient.interceptors.response.use(
     }
 );
 
+export { apiClient };
 export default apiClient;

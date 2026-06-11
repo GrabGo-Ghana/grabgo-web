@@ -1,17 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@grabgo/ui";
-import { OrderStatus, OrderType, PaymentStatus, Order } from "../../../lib/mockOrderData";
-import { Search, Cart, CheckCircle, Clock, Trash, Download, GraphUp } from "iconoir-react";
-import { useOrderUpdates } from "../../../hooks/useOrderUpdates";
-import { LiveOrderNotification } from "../../../components/orders/LiveOrderNotification";
-import { OrderAnalyticsCharts } from "../../../components/orders/OrderAnalyticsCharts";
+import { Search, Cart, CheckCircle, Clock, Trash, Download } from "iconoir-react";
+import { apiClient } from "@grabgo/utils";
 
 // Animated Number Component
-function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number }) {
+function AnimatedNumber({ value, delay = 0, decimals = 0 }: { value: number; delay?: number; decimals?: number }) {
     const [count, setCount] = useState(0);
 
     useEffect(() => {
@@ -27,7 +25,7 @@ function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number })
                     setCount(value);
                     clearInterval(interval);
                 } else {
-                    setCount(Math.floor(current));
+                    setCount(current);
                 }
             }, duration / steps);
 
@@ -37,7 +35,7 @@ function AnimatedNumber({ value, delay = 0 }: { value: number; delay?: number })
         return () => clearTimeout(timer);
     }, [value, delay]);
 
-    return <>{count.toLocaleString()}</>;
+    return <>{decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString()}</>;
 }
 
 export default function OrdersPage() {
@@ -45,18 +43,18 @@ export default function OrdersPage() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const { orders: liveOrders, lastUpdate } = useOrderUpdates();
+    const [orders, setOrders] = useState<any[]>([]);
+    const [totalOrders, setTotalOrders] = useState(0);
     const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-    const [notification, setNotification] = useState<{ orderNumber: string; status: OrderStatus } | null>(null);
-    const [showCharts, setShowCharts] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Sync lastUpdate to notification
-    useEffect(() => {
-        if (lastUpdate) {
-            setNotification(lastUpdate);
-        }
-    }, [lastUpdate]);
+    const [stats, setStats] = useState({
+        totalToday: 0,
+        pending: 0,
+        active: 0,
+        completed: 0,
+        revenue: 0
+    });
 
     // Initialize state from URL or defaults
     const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
@@ -67,32 +65,6 @@ export default function OrdersPage() {
     const [dateRangeFilter, setDateRangeFilter] = useState<string>(searchParams.get("date") || "all");
     const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
     const [itemsPerPage, setItemsPerPage] = useState(Number(searchParams.get("limit")) || 10);
-
-    const stats = useMemo(() => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const todayOrders = liveOrders.filter(o => new Date(o.createdAt) >= today);
-
-        return {
-            totalToday: todayOrders.length,
-            pending: liveOrders.filter(o => o.status === 'pending').length,
-            active: liveOrders.filter(o => ['confirmed', 'preparing', 'ready', 'picked_up', 'on_the_way'].includes(o.status)).length,
-            completed: todayOrders.filter(o => o.status === 'delivered').length,
-            revenue: todayOrders.reduce((sum, o) => sum + o.pricing.total, 0)
-        };
-    }, [liveOrders]);
-
-    // Set loading to false after minimum display time
-    useEffect(() => {
-        if (liveOrders.length > 0) {
-            // Show skeleton for at least 800ms for better UX
-            const timer = setTimeout(() => {
-                setIsLoading(false);
-            }, 800);
-            return () => clearTimeout(timer);
-        }
-    }, [liveOrders]);
 
     // Sync state to URL
     useEffect(() => {
@@ -125,73 +97,93 @@ export default function OrdersPage() {
         const query = params.toString();
         const url = query ? `${pathname}?${query}` : pathname;
 
-        // Use replace to avoid filling up history stack on every keystroke
         router.replace(url, { scroll: false });
     }, [searchQuery, orderTypeFilter, statusFilter, paymentStatusFilter, paymentMethodFilter, dateRangeFilter, currentPage, itemsPerPage, pathname, router, searchParams]);
 
-    // Filtered and sorted orders
-    const filteredOrders = useMemo(() => {
-        return liveOrders.filter(order => {
-            // Search filter
-            const searchLower = searchQuery.toLowerCase();
-            const matchesSearch = !searchQuery ||
-                order.orderNumber.toLowerCase().includes(searchLower) ||
-                order.customer.name.toLowerCase().includes(searchLower) ||
-                order.vendor.name.toLowerCase().includes(searchLower);
-
-            // Type filter
-            const matchesType = orderTypeFilter === "all" || order.type === orderTypeFilter;
-
-            // Status filter
-            const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-
-            // Payment status filter
-            const matchesPaymentStatus = paymentStatusFilter === "all" || order.paymentStatus === paymentStatusFilter;
-
-            // Payment method filter
-            const matchesPaymentMethod = paymentMethodFilter === "all" || order.paymentMethod === paymentMethodFilter;
-
-            // Date range filter
-            let matchesDateRange = true;
-            if (dateRangeFilter !== "all") {
-                const orderDate = new Date(order.createdAt);
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-                switch (dateRangeFilter) {
-                    case "today":
-                        matchesDateRange = orderDate >= today;
-                        break;
-                    case "yesterday":
+    // Fetch orders and stats from backend
+    useEffect(() => {
+        let isMounted = true;
+        const fetchOrdersAndStats = async () => {
+            setIsLoading(true);
+            try {
+                // 1. Calculate date parameters
+                let startDate = "";
+                let endDate = "";
+                if (dateRangeFilter !== "all") {
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    if (dateRangeFilter === "today") {
+                        startDate = today.toISOString().split("T")[0];
+                        endDate = now.toISOString().split("T")[0];
+                    } else if (dateRangeFilter === "yesterday") {
                         const yesterday = new Date(today);
                         yesterday.setDate(yesterday.getDate() - 1);
-                        matchesDateRange = orderDate >= yesterday && orderDate < today;
-                        break;
-                    case "week":
+                        startDate = yesterday.toISOString().split("T")[0];
+                        endDate = yesterday.toISOString().split("T")[0];
+                    } else if (dateRangeFilter === "week") {
                         const weekAgo = new Date(today);
                         weekAgo.setDate(weekAgo.getDate() - 7);
-                        matchesDateRange = orderDate >= weekAgo;
-                        break;
-                    case "month":
+                        startDate = weekAgo.toISOString().split("T")[0];
+                        endDate = now.toISOString().split("T")[0];
+                    } else if (dateRangeFilter === "month") {
                         const monthAgo = new Date(today);
                         monthAgo.setMonth(monthAgo.getMonth() - 1);
-                        matchesDateRange = orderDate >= monthAgo;
-                        break;
+                        startDate = monthAgo.toISOString().split("T")[0];
+                        endDate = now.toISOString().split("T")[0];
+                    }
+                }
+
+                const mappedType = orderTypeFilter === "all" ? "" : orderTypeFilter;
+                const mappedStatus = statusFilter === "all" ? "" : statusFilter;
+                const mappedPayment = paymentStatusFilter === "all" ? "" : paymentStatusFilter;
+
+                // 2. Query Orders
+                const ordersRes = await apiClient.get(
+                    `/admin/orders?page=${currentPage}&limit=${itemsPerPage}&type=${mappedType}&status=${mappedStatus}&payment=${mappedPayment}&q=${searchQuery}&startDate=${startDate}&endDate=${endDate}`
+                );
+
+                // 3. Query stats for today
+                const todayStr = new Date().toISOString().split("T")[0];
+                const statsRes = await apiClient.get(
+                    `/admin/dashboard/stats?startDate=${todayStr}&endDate=${todayStr}`
+                );
+
+                if (isMounted) {
+                    if (ordersRes.data.success) {
+                        setOrders(ordersRes.data.data.orders);
+                        setTotalOrders(ordersRes.data.data.total);
+                    }
+                    if (statsRes.data.success) {
+                        const s = statsRes.data.data;
+                        setStats({
+                            totalToday: s.totalOrders || 0,
+                            pending: s.pendingOrders || 0,
+                            active: s.activeRiders || 0, // Online riders as active proxy
+                            completed: s.completedOrders || 0,
+                            revenue: s.totalRevenue || 0
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load orders or stats:", error);
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
                 }
             }
+        };
 
-            return matchesSearch && matchesType && matchesStatus && matchesPaymentStatus && matchesPaymentMethod && matchesDateRange;
-        }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }, [searchQuery, orderTypeFilter, statusFilter, paymentStatusFilter, paymentMethodFilter, dateRangeFilter, liveOrders]);
+        const timer = setTimeout(() => {
+            fetchOrdersAndStats();
+        }, 300);
 
-    // Paginated orders
-    const paginatedOrders = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        return filteredOrders.slice(startIndex, endIndex);
-    }, [filteredOrders, currentPage, itemsPerPage]);
+        return () => {
+            isMounted = false;
+            clearTimeout(timer);
+        };
+    }, [currentPage, itemsPerPage, searchQuery, orderTypeFilter, statusFilter, paymentStatusFilter, paymentMethodFilter, dateRangeFilter]);
 
-    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+    const totalPages = Math.ceil(totalOrders / itemsPerPage);
 
     const clearFilters = () => {
         setSearchQuery("");
@@ -211,15 +203,15 @@ export default function OrdersPage() {
     };
 
     const toggleAllSelection = () => {
-        if (selectedOrders.length === paginatedOrders.length) {
+        if (selectedOrders.length === orders.length) {
             setSelectedOrders([]);
         } else {
-            setSelectedOrders(paginatedOrders.map(o => o.id));
+            setSelectedOrders(orders.map(o => o.id));
         }
     };
 
-    const getStatusColor = (status: OrderStatus) => {
-        const colors: Record<OrderStatus, string> = {
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
             pending: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-500/20',
             confirmed: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20',
             preparing: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20',
@@ -232,24 +224,27 @@ export default function OrdersPage() {
         return colors[status] || 'bg-gray-500/10 text-gray-600 dark:text-gray-400 dark:bg-gray-500/20';
     };
 
-    const getPaymentStatusColor = (status: PaymentStatus) => {
-        const colors: Record<PaymentStatus, string> = {
+    const getPaymentStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
             pending: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 dark:bg-yellow-500/20',
             paid: 'bg-green-500/10 text-green-600 dark:text-green-400 dark:bg-green-500/20',
+            successful: 'bg-green-500/10 text-green-600 dark:text-green-400 dark:bg-green-500/20',
             failed: 'bg-red-500/10 text-red-600 dark:text-red-400 dark:bg-red-500/20',
             refunded: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 dark:bg-gray-500/20'
         };
-        return colors[status];
+        return colors[status] || 'bg-gray-500/10 text-gray-600 dark:text-gray-400 dark:bg-gray-500/20';
     };
 
-    const getTypeColor = (type: OrderType) => {
-        const colors: Record<OrderType, string> = {
+    const getTypeColor = (type: string) => {
+        const colors: Record<string, string> = {
             food: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 dark:bg-orange-500/20',
+            restaurant: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 dark:bg-orange-500/20',
             grocery: 'bg-green-500/10 text-green-600 dark:text-green-400 dark:bg-green-500/20',
             pharmacy: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 dark:bg-blue-500/20',
-            market: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20'
+            market: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20',
+            grabmart: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 dark:bg-purple-500/20'
         };
-        return colors[type];
+        return colors[type] || 'bg-gray-500/10 text-gray-600 dark:text-gray-400 dark:bg-gray-500/20';
     };
 
     const formatDate = (dateString: string) => {
@@ -276,28 +271,11 @@ export default function OrdersPage() {
                     <h1 className="text-4xl font-extrabold tracking-tight">Orders</h1>
                     <p className="text-muted-foreground mt-2 text-lg">Manage and track all orders in real-time</p>
                 </div>
-                <button
-                    onClick={() => setShowCharts(!showCharts)}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-full border font-semibold shadow-sm transition-all duration-300 hover:scale-105 active:scale-95 ${showCharts
-                        ? 'bg-[#FE6132] text-white border-[#FE6132] shadow-orange-100'
-                        : 'bg-background text-foreground border-border hover:bg-accent'
-                        }`}
-                >
-                    <GraphUp className="w-5 h-5" />
-                    {showCharts ? 'Hide Analytics' : 'Show Analytics'}
-                </button>
             </div>
-
-            {/* Analytics Charts */}
-            {showCharts && (
-                <div className="animate-fade-in-up duration-500">
-                    <OrderAnalyticsCharts orders={liveOrders} />
-                </div>
-            )}
 
             {/* Statistics Cards */}
             <div className="grid gap-6 md:grid-cols-4">
-                <Card className="p-6 border-border/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up [animation-delay:100ms] bg-card/50 backdrop-blur-sm">
+                <Card className="p-6 border-border/50 transition-all duration-300 group animate-fade-in-up [animation-delay:100ms] bg-card/50">
                     <div className="flex items-center gap-4">
                         <div className="p-4 rounded-2xl bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
                             <Cart className="w-8 h-8 text-blue-600" />
@@ -309,7 +287,7 @@ export default function OrdersPage() {
                     </div>
                 </Card>
 
-                <Card className="p-6 border-border/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up [animation-delay:200ms] bg-card/50 backdrop-blur-sm">
+                <Card className="p-6 border-border/50 transition-all duration-300 group animate-fade-in-up [animation-delay:200ms] bg-card/50">
                     <div className="flex items-center gap-4">
                         <div className="p-4 rounded-2xl bg-yellow-500/10 group-hover:bg-yellow-500/20 transition-colors">
                             <Clock className="w-8 h-8 text-yellow-600" />
@@ -321,19 +299,19 @@ export default function OrdersPage() {
                     </div>
                 </Card>
 
-                <Card className="p-6 border-border/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up [animation-delay:300ms] bg-card/50 backdrop-blur-sm">
+                <Card className="p-6 border-border/50 transition-all duration-300 group animate-fade-in-up [animation-delay:300ms] bg-card/50">
                     <div className="flex items-center gap-4">
                         <div className="p-4 rounded-2xl bg-orange-500/10 group-hover:bg-orange-500/20 transition-colors">
                             <Clock className="w-8 h-8 text-orange-600" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-muted-foreground">Active</p>
+                            <p className="text-sm font-medium text-muted-foreground">Active Fleet</p>
                             <p className="text-3xl font-bold tracking-tight"><AnimatedNumber value={stats.active} delay={300} /></p>
                         </div>
                     </div>
                 </Card>
 
-                <Card className="p-6 border-border/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group animate-fade-in-up [animation-delay:400ms] bg-card/50 backdrop-blur-sm">
+                <Card className="p-6 border-border/50 transition-all duration-300 group animate-fade-in-up [animation-delay:400ms] bg-card/50">
                     <div className="flex items-center gap-4">
                         <div className="p-4 rounded-2xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                             <CheckCircle className="w-8 h-8 text-green-600" />
@@ -374,7 +352,6 @@ export default function OrdersPage() {
 
                     {/* Filter Dropdowns */}
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                        {/* ... select inputs remain same but with better styling ... */}
                         <div>
                             <label className="text-xs font-bold mb-1.5 block text-muted-foreground uppercase tracking-wider">Date Range</label>
                             <select
@@ -475,7 +452,7 @@ export default function OrdersPage() {
 
             {/* Bulk Actions Toolbar */}
             {selectedOrders.length > 0 && (
-                <div className="bg-[#FE6132] text-white p-4 rounded-xl flex items-center justify-between animate-fade-in-up duration-300 shadow-lg shadow-orange-100">
+                <div className="bg-[#FE6132] text-white p-4 rounded-xl flex items-center justify-between animate-fade-in-up duration-300">
                     <div className="flex items-center gap-4">
                         <span className="font-bold flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-white text-[#FE6132] flex items-center justify-center text-xs">
@@ -485,16 +462,7 @@ export default function OrdersPage() {
                         </span>
                         <div className="h-8 w-px bg-white/20" />
                         <button className="flex items-center gap-2 text-sm font-bold hover:bg-white/10 px-4 py-2 rounded-lg transition-all active:scale-95">
-                            <CheckCircle className="w-4 h-4" />
-                            Mark as Delivered
-                        </button>
-                        <button className="flex items-center gap-2 text-sm font-bold hover:bg-white/10 px-4 py-2 rounded-lg transition-all active:scale-95">
-                            <Download className="w-4 h-4" />
                             Export Selected
-                        </button>
-                        <button className="flex items-center gap-2 text-sm font-bold hover:bg-red-500 px-4 py-2 rounded-lg transition-all active:scale-95 text-red-50">
-                            <Trash className="w-4 h-4" />
-                            Cancel Selected
                         </button>
                     </div>
                 </div>
@@ -509,14 +477,14 @@ export default function OrdersPage() {
                                 <th className="p-4 w-10">
                                     <input
                                         type="checkbox"
-                                        checked={selectedOrders.length === paginatedOrders.length && paginatedOrders.length > 0}
+                                        checked={selectedOrders.length === orders.length && orders.length > 0}
                                         onChange={toggleAllSelection}
                                         className="w-4 h-4 rounded border-border text-[#FE6132] focus:ring-[#FE6132]"
                                     />
                                 </th>
-                                <th className="p-4">Order ID</th>
+                                <th className="p-4">Order ID / Number</th>
                                 <th className="p-4">Customer</th>
-                                <th className="p-4">Vendor</th>
+                                <th className="p-4">Vendor Name</th>
                                 <th className="p-4">Type</th>
                                 <th className="text-right p-4">Amount</th>
                                 <th className="p-4">Payment</th>
@@ -527,7 +495,6 @@ export default function OrdersPage() {
                         </thead>
                         <tbody>
                             {isLoading ? (
-                                // Skeleton Loaders
                                 Array.from({ length: itemsPerPage }).map((_, i) => (
                                     <tr key={`skeleton-${i}`} className="border-b border-border/50 animate-pulse">
                                         <td className="p-4">
@@ -572,7 +539,7 @@ export default function OrdersPage() {
                                     </tr>
                                 ))
                             ) : (
-                                paginatedOrders.map((order, index) => (
+                                orders.map((order, index) => (
                                     <tr
                                         key={order.id}
                                         className="border-b border-border/50 hover:bg-accent/30 transition-all duration-200 animate-fade-in-up"
@@ -588,34 +555,27 @@ export default function OrdersPage() {
                                         </td>
                                         <td className="p-4">
                                             <p className="font-semibold text-foreground">{order.orderNumber}</p>
-                                            {order.rider && <p className="text-xs text-muted-foreground mt-0.5">🚴 {order.rider.name}</p>}
                                         </td>
                                         <td className="py-3 px-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-medium">{order.customer.name}</span>
-                                                <span className="text-xs text-muted-foreground">{order.customer.phone}</span>
-                                            </div>
+                                            <span className="text-sm font-medium">{order.customerName}</span>
                                         </td>
                                         <td className="py-3 px-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-medium">{order.vendor.name}</span>
-                                                <span className="text-xs text-muted-foreground">{order.delivery.address}</span>
-                                            </div>
+                                            <span className="text-sm font-medium">{order.vendorName}</span>
                                         </td>
                                         <td className="py-3 px-4">
-                                            <span className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${getTypeColor(order.type)}`}>
-                                                {order.type}
+                                            <span className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${getTypeColor(order.vendorType || order.type)}`}>
+                                                {order.vendorType || order.type}
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-right">
-                                            <span className="text-sm font-semibold">GH₵ {order.pricing.total.toFixed(2)}</span>
+                                            <span className="text-sm font-semibold">GH₵ {order.total.toFixed(2)}</span>
                                         </td>
                                         <td className="py-3 px-4">
                                             <div className="flex flex-col gap-1">
                                                 <span className={`text-xs px-2 py-1 rounded-full font-medium capitalize inline-block w-fit ${getPaymentStatusColor(order.paymentStatus)}`}>
                                                     {order.paymentStatus}
                                                 </span>
-                                                <span className="text-xs text-muted-foreground capitalize">{order.paymentMethod.replace('_', ' ')}</span>
+                                                <span className="text-xs text-muted-foreground capitalize">{order.paymentMethod ? order.paymentMethod.replace('_', ' ') : 'N/A'}</span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4">
@@ -635,8 +595,8 @@ export default function OrdersPage() {
                                             </Link>
                                         </td>
                                     </tr>
-                                )
-                                ))}
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -654,12 +614,12 @@ export default function OrdersPage() {
                             className="px-2 py-1 text-sm rounded-md border border-border bg-background focus:outline-none"
                         >
                             <option value={10}>10</option>
-                            <option value={20}>20</option>
+                            <option value={25}>25</option>
                             <option value={50}>50</option>
                             <option value={100}>100</option>
                         </select>
                         <span className="text-sm text-muted-foreground">
-                            of {filteredOrders.length} orders
+                            of {totalOrders} orders
                         </span>
                     </div>
 
@@ -671,35 +631,9 @@ export default function OrdersPage() {
                         >
                             Previous
                         </button>
-
-                        <div className="flex gap-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum;
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1;
-                                } else if (currentPage <= 3) {
-                                    pageNum = i + 1;
-                                } else if (currentPage >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
-                                } else {
-                                    pageNum = currentPage - 2 + i;
-                                }
-
-                                return (
-                                    <button
-                                        key={pageNum}
-                                        onClick={() => setCurrentPage(pageNum)}
-                                        className={`px-3 py-1 text-sm rounded-md border transition-colors ${currentPage === pageNum
-                                            ? 'bg-[#FE6132] text-white border-[#FE6132]'
-                                            : 'border-border bg-background hover:bg-accent'
-                                            }`}
-                                    >
-                                        {pageNum}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
+                        <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages || 1}
+                        </span>
                         <button
                             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                             disabled={currentPage === totalPages || totalPages === 0}
@@ -710,14 +644,6 @@ export default function OrdersPage() {
                     </div>
                 </div>
             </Card>
-
-            {notification && (
-                <LiveOrderNotification
-                    orderNumber={notification.orderNumber}
-                    status={notification.status}
-                    onClose={() => setNotification(null)}
-                />
-            )}
         </div>
     );
 }

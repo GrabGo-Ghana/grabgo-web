@@ -114,7 +114,7 @@ export default function FoodItemPage({ params }: FoodItemPageProps) {
                             <Badge className="text-xs px-3 py-1 font-medium bg-accent/50 text-foreground border-0">
                                 {foodItem.category}
                             </Badge>
-                            <Badge className={`text-xs px-3 py-1 font-semibold ${foodItem.inStock ? 'bg-green-600 text-white' : 'bg-red-600 text-white'} shadow-sm`}>
+                            <Badge className={`text-xs px-3 py-1 font-semibold ${foodItem.inStock ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
                                 {foodItem.inStock ? (
                                     <span className="flex items-center gap-1">
                                         <CheckCircle className="w-3 h-3" />
@@ -130,7 +130,7 @@ export default function FoodItemPage({ params }: FoodItemPageProps) {
                             <Badge className={`text-xs px-3 py-1 font-semibold ${foodItem.moderationStatus === 'approved' ? 'bg-blue-600 text-white' :
                                 foodItem.moderationStatus === 'rejected' ? 'bg-amber-600 text-white' :
                                     'bg-slate-500 text-white'
-                                } shadow-sm`}>
+                                }`}>
                                 <span className="flex items-center gap-1 capitalize">
                                     <ShieldCheck className="w-3 h-3" />
                                     {foodItem.moderationStatus}
@@ -241,7 +241,7 @@ export default function FoodItemPage({ params }: FoodItemPageProps) {
                             <label className="text-sm font-medium text-muted-foreground">Allergens</label>
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {foodItem.allergens.map((allergen, idx) => (
-                                    <Badge key={idx} className="text-xs bg-orange-600 text-white font-semibold shadow-sm">
+                                    <Badge key={idx} className="text-xs bg-orange-600 text-white font-semibold">
                                         {allergen}
                                     </Badge>
                                 ))}

@@ -23,6 +23,7 @@ import {
     SelectValue,
 } from "@grabgo/ui";
 import { type Customer } from "../../../../lib/mockData";
+import { apiClient } from "@grabgo/utils";
 
 const notificationSchema = z.object({
     title: z.string().min(3, "Title must be at least 3 characters"),
@@ -65,18 +66,27 @@ export function SendNotificationDialog({
 
     const onSubmit = async (data: NotificationFormData) => {
         setIsSubmitting(true);
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        console.log("Notification sent:", data);
-
-        setIsSubmitting(false);
-        onOpenChange(false);
-        reset();
-
-        // TODO: Show success toast
-        alert(`Notification sent to ${customer.username}`);
+        try {
+            const response = await apiClient.post("/admin/notifications/send-single", {
+                userId: customer.id,
+                title: data.title,
+                message: data.message,
+                priority: data.priority,
+                reason: `Targeted notification to customer ${customer.username}`
+            });
+            if (response.data.success) {
+                alert(`Notification successfully sent to ${customer.username}`);
+            } else {
+                alert(response.data.message || "Failed to send notification");
+            }
+        } catch (error: any) {
+            console.error("Failed to send notification:", error);
+            alert(error.response?.data?.message || "Failed to send notification");
+        } finally {
+            setIsSubmitting(false);
+            onOpenChange(false);
+            reset();
+        }
     };
 
     const getPriorityColor = (p: string) => {

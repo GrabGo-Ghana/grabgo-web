@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card } from "@grabgo/ui";
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import {
+    Card,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@grabgo/ui";
 import {
     Group,
     Shop,
     Cart,
     Cycling,
     Clock,
+    CreditCard,
 } from "iconoir-react";
 import {
     TrendingUp,
@@ -17,13 +26,7 @@ import {
 import { LineChart } from "../../components/charts/LineChart";
 import { PieChart } from "../../components/charts/PieChart";
 import { BarChart } from "../../components/charts/BarChart";
-import {
-    mockRevenueData,
-    mockOrderStatusData,
-    mockPeakHoursData,
-    mockTopVendors,
-    mockPopularItems,
-} from "../../lib/mockAnalyticsData";
+import { apiClient } from "@grabgo/utils";
 
 interface StatCardProps {
     title: string;
@@ -37,9 +40,8 @@ function StatCard({ title, value, change, icon: Icon, delay = 0 }: StatCardProps
     const [count, setCount] = useState(0);
     const targetValue = typeof value === "number" ? value : parseInt(value) || 0;
 
-    // Count-up animation
     useEffect(() => {
-        const duration = 1000; // 1 second
+        const duration = 1000;
         const steps = 30;
         const increment = targetValue / steps;
         let current = 0;
@@ -56,14 +58,14 @@ function StatCard({ title, value, change, icon: Icon, delay = 0 }: StatCardProps
             }, duration / steps);
 
             return () => clearInterval(interval);
-        }, delay + 300); // Standardize entry offset
+        }, delay + 300);
 
         return () => clearTimeout(timer);
     }, [targetValue, delay]);
 
     return (
         <Card
-            className="p-6 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-[#FE6132]/10 animate-fade-in-up border-border/50 bg-card/50 backdrop-blur-sm group"
+            className="p-6 transition-all duration-300 animate-fade-in-up border-border/50 bg-card/50 group"
             style={{ animationDelay: `${delay}ms` }}
         >
             <div className="flex items-start justify-between">
@@ -96,152 +98,270 @@ function StatCard({ title, value, change, icon: Icon, delay = 0 }: StatCardProps
     );
 }
 
+const STATUS_COLORS: Record<string, string> = {
+    pending: '#6b7280',
+    confirmed: '#3b82f6',
+    preparing: '#f59e0b',
+    ready: '#8b5cf6',
+    picked_up: '#d97706',
+    on_the_way: '#06b6d4',
+    delivered: '#10b981',
+    cancelled: '#ef4444'
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    preparing: 'Preparing',
+    ready: 'Ready',
+    picked_up: 'Picked Up',
+    on_the_way: 'On the Way',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled'
+};
+
 export default function DashboardPage() {
+    const router = useRouter();
+    const [dateRange, setDateRange] = useState<string>("7days");
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        activeVendors: 0,
+        totalOrders: 0,
+        activeRiders: 0,
+        completedOrders: 0,
+        pendingOrders: 0,
+        totalRevenue: 0
+    });
+    const [charts, setCharts] = useState({
+        statusCounts: [] as Array<{ status: string; count: number }>,
+        revenueTrend: [] as Array<{ date: string; revenue: number }>,
+        peakHours: [] as Array<{ hour: string; orders: number }>,
+        eliteVendors: [] as Array<{ id: string; name: string; type: string; orders: number; revenue: number; rating: number }>,
+        pendingVendors: 0,
+        pendingRiders: 0
+    });
+    const [isLoading, setIsLoading] = useState(true);
+
+    const dateParams = useMemo(() => {
+        const end = new Date();
+        const start = new Date();
+        if (dateRange === "today") {
+            start.setHours(0, 0, 0, 0);
+        } else if (dateRange === "yesterday") {
+            start.setDate(start.getDate() - 1);
+            start.setHours(0, 0, 0, 0);
+            end.setDate(end.getDate() - 1);
+            end.setHours(23, 59, 59, 999);
+        } else if (dateRange === "7days") {
+            start.setDate(start.getDate() - 7);
+        } else if (dateRange === "30days") {
+            start.setDate(start.getDate() - 30);
+        }
+        return {
+            startDate: start.toISOString().split('T')[0],
+            endDate: end.toISOString().split('T')[0]
+        };
+    }, [dateRange]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchDashboardData = async () => {
+            setIsLoading(true);
+            try {
+                const { startDate, endDate } = dateParams;
+                const [statsRes, chartsRes] = await Promise.all([
+                    apiClient.get(`/admin/dashboard/stats?startDate=${startDate}&endDate=${endDate}`),
+                    apiClient.get(`/admin/dashboard/charts?startDate=${startDate}&endDate=${endDate}`)
+                ]);
+                if (isMounted) {
+                    if (statsRes.data.success) {
+                        setStats(statsRes.data.data);
+                    }
+                    if (chartsRes.data.success) {
+                        setCharts(chartsRes.data.data);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load dashboard data:", error);
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        fetchDashboardData();
+        return () => {
+            isMounted = false;
+        };
+    }, [dateParams]);
+
+    const orderStatusChartData = useMemo(() => {
+        return charts.statusCounts.map(item => ({
+            status: STATUS_LABELS[item.status] || item.status,
+            count: item.count,
+            color: STATUS_COLORS[item.status] || '#FE6132'
+        }));
+    }, [charts.statusCounts]);
+
+    const lineChartData = useMemo(() => {
+        return charts.revenueTrend.map(d => ({
+            ...d,
+            date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        }));
+    }, [charts.revenueTrend]);
+
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="animate-fade-in-up">
-                <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
-                <p className="text-muted-foreground mt-2 text-lg">
-                    Welcome back! Here&apos;s a real-time overview of GrabGo performance.
-                </p>
+            <div className="flex items-center justify-between animate-fade-in-up">
+                <div>
+                    <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
+                    <p className="text-muted-foreground mt-2 text-lg">
+                        Welcome back! Here&apos;s a real-time overview of GrabGo performance.
+                    </p>
+                </div>
+                <div className="w-48">
+                    <Select value={dateRange} onValueChange={setDateRange}>
+                        <SelectTrigger className="h-11 border-border/50 bg-background/50 rounded-xl font-bold">
+                            <SelectValue placeholder="Select timeframe" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-border/50">
+                            <SelectItem value="today" className="rounded-lg">Today</SelectItem>
+                            <SelectItem value="yesterday" className="rounded-lg">Yesterday</SelectItem>
+                            <SelectItem value="7days" className="rounded-lg">Last 7 Days</SelectItem>
+                            <SelectItem value="30days" className="rounded-lg">Last 30 Days</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <StatCard
-                    title="Total Users"
-                    value={12458}
-                    change={12.5}
+                    title="Total Customers"
+                    value={stats.totalUsers}
                     icon={Group}
                     delay={0}
                 />
                 <StatCard
                     title="Active Vendors"
-                    value={342}
-                    change={8.2}
+                    value={stats.activeVendors}
                     icon={Shop}
                     delay={100}
                 />
                 <StatCard
-                    title="Orders Today"
-                    value={1247}
-                    change={-3.1}
+                    title="Orders in Timeframe"
+                    value={stats.totalOrders}
                     icon={Cart}
                     delay={200}
                 />
                 <StatCard
                     title="Active Riders"
-                    value={89}
-                    change={5.7}
+                    value={stats.activeRiders}
                     icon={Cycling}
                     delay={300}
                 />
             </div>
 
-            {/* Quick Stats Row */}
             <div className="grid gap-6 md:grid-cols-3">
-                <Card
-                    className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group"
-                    style={{ animationDelay: "400ms" }}
-                >
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "400ms" }}>
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-500/10 group-hover:scale-110 transition-transform">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-green-500/10 transition-transform">
                             <CheckCircle className="w-7 h-7 text-green-600" />
                         </div>
                         <div>
                             <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Completed Today</p>
-                            <p className="text-3xl font-black">1,124</p>
+                            <p className="text-3xl font-black">{stats.completedOrders}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card
-                    className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group"
-                    style={{ animationDelay: "500ms" }}
-                >
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "500ms" }}>
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-yellow-500/10 group-hover:scale-110 transition-transform">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-yellow-500/10 transition-transform">
                             <Clock className="w-7 h-7 text-yellow-600" />
                         </div>
                         <div>
                             <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Pending Orders</p>
-                            <p className="text-3xl font-black">23</p>
+                            <p className="text-3xl font-black">{stats.pendingOrders}</p>
                         </div>
                     </div>
                 </Card>
 
-                <Card
-                    className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group"
-                    style={{ animationDelay: "600ms" }}
-                >
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "600ms" }}>
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#FE6132]/10 group-hover:scale-110 transition-transform">
-                            <TrendingUp className="w-7 h-7 text-[#FE6132]" />
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#FE6132]/10 transition-transform">
+                            <CreditCard className="w-7 h-7 text-[#FE6132]" />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Revenue Today</p>
-                            <p className="text-3xl font-black">GH₵ 45,230</p>
+                            <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Gross Sales Value</p>
+                            <p className="text-3xl font-black">
+                                GH₵ {stats.totalRevenue.toLocaleString("en-GH", { minimumFractionDigits: 2 })}
+                            </p>
                         </div>
                     </div>
                 </Card>
             </div>
 
-            {/* Analytics Charts */}
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Revenue Trend Chart */}
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "700ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all" style={{ animationDelay: "700ms" }}>
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <h3 className="text-xl font-bold">Revenue Trend</h3>
                             <p className="text-sm font-medium text-muted-foreground mt-1">Daily revenue performance across all services</p>
                         </div>
                         <div className="text-right p-3 rounded-xl bg-orange-500/10 border border-[#FE6132]/20">
-                            <p className="text-xs font-bold text-[#FE6132]/80 uppercase tracking-wider mb-1">Total Revenue</p>
+                            <p className="text-xs font-bold text-[#FE6132]/80 uppercase tracking-wider mb-1">Total Sales Value</p>
                             <p className="text-2xl font-black text-[#FE6132]">
-                                GH₵ {mockRevenueData.reduce((sum, day) => sum + day.revenue, 0).toLocaleString()}
+                                GH₵ {stats.totalRevenue.toLocaleString("en-GH")}
                             </p>
                         </div>
                     </div>
                     <div className="h-[250px] w-full">
-                        <LineChart
-                            data={mockRevenueData.map(d => ({
-                                ...d,
-                                date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                            }))}
-                            xKey="date"
-                            yKey="revenue"
-                            height={250}
-                        />
+                        {lineChartData.length > 0 ? (
+                            <LineChart
+                                data={lineChartData}
+                                xKey="date"
+                                yKey="revenue"
+                                height={250}
+                            />
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+                                No sales data recorded for this timeframe
+                            </div>
+                        )}
                     </div>
                 </Card>
 
-                {/* Order Status Distribution */}
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "800ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all" style={{ animationDelay: "800ms" }}>
                     <div className="mb-8">
                         <h3 className="text-xl font-bold">Order Live Status</h3>
                         <p className="text-sm font-medium text-muted-foreground mt-1">Real-time breakdown of current order states</p>
                     </div>
                     <div className="h-[250px] w-full flex items-center justify-center">
-                        <PieChart
-                            data={mockOrderStatusData}
-                            dataKey="count"
-                            nameKey="status"
-                            height={250}
-                        />
+                        {orderStatusChartData.length > 0 ? (
+                            <PieChart
+                                data={orderStatusChartData}
+                                dataKey="count"
+                                nameKey="status"
+                                height={250}
+                            />
+                        ) : (
+                            <div className="text-muted-foreground text-sm">
+                                No live orders
+                            </div>
+                        )}
                     </div>
                 </Card>
             </div>
 
-            {/* Peak Hours Chart */}
-            <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "900ms" }}>
+            <Card className="p-6 border-border/50 animate-fade-in-up transition-all" style={{ animationDelay: "900ms" }}>
                 <div className="mb-8">
                     <h3 className="text-xl font-bold">Busiest Store Hours</h3>
                     <p className="text-sm font-medium text-muted-foreground mt-1">Aggregated order volume by hour (24h system)</p>
                 </div>
                 <div className="h-[250px]">
                     <BarChart
-                        data={mockPeakHoursData}
+                        data={charts.peakHours}
                         xKey="hour"
                         yKey="orders"
                         height={250}
@@ -249,10 +369,8 @@ export default function DashboardPage() {
                 </div>
             </Card>
 
-            {/* Top Performers */}
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Top Performing Vendors */}
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "1000ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all" style={{ animationDelay: "1000ms" }}>
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h3 className="text-xl font-bold text-foreground">Elite Vendors</h3>
@@ -263,91 +381,49 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="space-y-3">
-                        {mockTopVendors.slice(0, 5).map((vendor, index) => (
-                            <div
-                                key={vendor.id}
-                                className="flex items-center justify-between p-3.5 rounded-xl bg-accent/30 hover:bg-accent/60 transition-all cursor-pointer group animate-fade-in-up"
-                                style={{ animationDelay: `${1100 + index * 50}ms` }}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#FE6132] to-[#FE6132]/80 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                        <span className="text-sm font-black text-white">{index + 1}</span>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-bold text-foreground">{vendor.name}</p>
-                                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${vendor.type === 'food' ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' :
-                                                vendor.type === 'grocery' ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400' :
-                                                    vendor.type === 'pharmacy' ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' :
-                                                        'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400'
-                                                }`}>
-                                                {vendor.type}
-                                            </span>
+                        {charts.eliteVendors.length > 0 ? (
+                            charts.eliteVendors.slice(0, 5).map((vendor, index) => (
+                                <div
+                                    key={vendor.id}
+                                    className="flex items-center justify-between p-3.5 rounded-xl bg-accent/30 hover:bg-accent/60 transition-all cursor-pointer group animate-fade-in-up"
+                                    style={{ animationDelay: `${1100 + index * 50}ms` }}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#FE6132] to-[#FE6132]/80 flex items-center justify-center transition-transform">
+                                            <span className="text-sm font-black text-white">{index + 1}</span>
                                         </div>
-                                        <p className="text-xs font-bold text-muted-foreground mt-0.5">{vendor.orders.toLocaleString()} Successful Orders</p>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-foreground">{vendor.name}</p>
+                                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${vendor.type === 'food' ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' :
+                                                    vendor.type === 'grocery' ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400' :
+                                                        vendor.type === 'pharmacy' ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' :
+                                                            'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400'
+                                                    }`}>
+                                                    {vendor.type}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs font-bold text-muted-foreground mt-0.5">{vendor.orders.toLocaleString()} Successful Orders</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-black text-foreground">GH₵ {vendor.revenue.toLocaleString()}</p>
+                                        <div className="flex items-center justify-end gap-1 text-xs font-bold text-orange-600">
+                                            <span>⭐</span>
+                                            <span>{vendor.rating.toFixed(1)}</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-black text-foreground">GH₵ {vendor.revenue.toLocaleString()}</p>
-                                    <div className="flex items-center justify-end gap-1 text-xs font-bold text-orange-600">
-                                        <span>⭐</span>
-                                        <span>{vendor.rating.toFixed(1)}</span>
-                                    </div>
-                                </div>
+                            ))
+                        ) : (
+                            <div className="p-8 text-center text-sm text-muted-foreground">
+                                No elite vendors for this range
                             </div>
-                        ))}
+                        )}
                     </div>
                 </Card>
 
-                {/* Popular Items */}
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "1100ms" }}>
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-xl font-bold text-foreground">Trending Goods</h3>
-                            <p className="text-sm font-medium text-muted-foreground mt-1">Most loved items across the platform</p>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-[#FE6132]/10">
-                            <Cart className="w-5 h-5 text-[#FE6132]" />
-                        </div>
-                    </div>
-                    <div className="space-y-3">
-                        {mockPopularItems.slice(0, 5).map((item, index) => (
-                            <div
-                                key={item.id}
-                                className="flex items-center justify-between p-3.5 rounded-xl bg-accent/30 hover:bg-accent/60 transition-all cursor-pointer group animate-fade-in-up"
-                                style={{ animationDelay: `${1200 + index * 50}ms` }}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-[#FE6132]/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
-                                        <span className="text-sm font-black text-[#FE6132]">{index + 1}</span>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <p className="font-bold text-foreground">{item.name}</p>
-                                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${item.type === 'food' ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400' :
-                                                item.type === 'grocery' ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400' :
-                                                    item.type === 'pharmacy' ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' :
-                                                        'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400'
-                                                }`}>
-                                                {item.type}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs font-bold text-muted-foreground mt-0.5">from {item.vendor}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-foreground">{item.orders.toLocaleString()} Sold</p>
-                                    <p className="text-xs font-bold text-muted-foreground">GH₵ {item.revenue.toLocaleString()}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            </div>
-
-            {/* Pending Actions */}
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "1300ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all" style={{ animationDelay: "1300ms" }}>
                     <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
                         <span className="relative flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
@@ -356,59 +432,40 @@ export default function DashboardPage() {
                         Pending Approvals
                     </h3>
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-orange-500/10 border border-[#FE6132]/20 hover:bg-orange-500/20 transition-all cursor-pointer group">
+                        <div
+                            onClick={() => router.push('/vendors')}
+                            className="flex items-center justify-between p-4 rounded-xl bg-orange-500/10 border border-[#FE6132]/20 hover:bg-orange-500/20 transition-all cursor-pointer group"
+                        >
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-card border border-[#FE6132]/20 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform text-[#FE6132]">
+                                <div className="w-12 h-12 rounded-xl bg-card border border-[#FE6132]/20 flex items-center justify-center transition-transform text-[#FE6132]">
                                     <Shop className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <p className="font-bold text-[#FE6132]">Vendor Applications</p>
-                                    <p className="text-xs font-bold text-[#FE6132]/60 uppercase tracking-tighter">5 stores awaiting review</p>
+                                    <p className="text-xs font-bold text-[#FE6132]/60 uppercase tracking-tighter">
+                                        {charts.pendingVendors} stores awaiting review
+                                    </p>
                                 </div>
                             </div>
                             <span className="text-sm font-black text-[#FE6132] group-hover:translate-x-1 transition-transform">GO →</span>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-all cursor-pointer group">
+                        <div
+                            onClick={() => router.push('/riders')}
+                            className="flex items-center justify-between p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition-all cursor-pointer group"
+                        >
                             <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-card border border-blue-500/20 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform text-blue-500">
+                                <div className="w-12 h-12 rounded-xl bg-card border border-blue-500/20 flex items-center justify-center transition-transform text-blue-500">
                                     <Cycling className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <p className="font-bold text-blue-500">Rider Onboarding</p>
-                                    <p className="text-xs font-bold text-blue-500/60 uppercase tracking-tighter">8 riders pending check</p>
+                                    <p className="text-xs font-bold text-blue-500/60 uppercase tracking-tighter">
+                                        {charts.pendingRiders} riders pending check
+                                    </p>
                                 </div>
                             </div>
                             <span className="text-sm font-black text-blue-500 group-hover:translate-x-1 transition-transform">GO →</span>
-                        </div>
-                    </div>
-                </Card>
-
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-md transition-all" style={{ animationDelay: "1400ms" }}>
-                    <h3 className="text-xl font-bold mb-6">Recent Activity Stream</h3>
-                    <div className="space-y-4">
-                        <div className="flex items-start gap-4 p-3.5 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors border border-transparent hover:border-border/50">
-                            <div className="w-3 h-3 rounded-full bg-green-500 mt-1.5 shadow-[0_0_10px_rgba(34,197,94,0.3)] animate-pulse" />
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-foreground">New order successfully placed</p>
-                                <p className="text-xs font-bold text-muted-foreground mt-0.5">Order #ORD-1234 • <span className="text-green-600">2 min ago</span></p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-4 p-3.5 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors border border-transparent hover:border-border/50">
-                            <div className="w-3 h-3 rounded-full bg-blue-500 mt-1.5 shadow-[0_0_10px_rgba(59,130,246,0.3)]" />
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-foreground">Premium Vendor approved</p>
-                                <p className="text-xs font-bold text-muted-foreground mt-0.5">Tasty Bites • <span className="text-blue-600">15 min ago</span></p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start gap-4 p-3.5 rounded-xl bg-accent/30 hover:bg-accent/50 transition-colors border border-transparent hover:border-border/50">
-                            <div className="w-3 h-3 rounded-full bg-yellow-500 mt-1.5 shadow-[0_0_10px_rgba(234,179,8,0.3)]" />
-                            <div className="flex-1">
-                                <p className="text-sm font-bold text-foreground">Rider verification pending</p>
-                                <p className="text-xs font-bold text-muted-foreground mt-0.5">John Doe • <span className="text-yellow-600">1 hour ago</span></p>
-                            </div>
                         </div>
                     </div>
                 </Card>

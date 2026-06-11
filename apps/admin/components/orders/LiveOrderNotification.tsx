@@ -60,9 +60,9 @@ export function LiveOrderNotification({ orderNumber, status, onClose }: LiveOrde
             className={`fixed bottom-6 right-6 z-50 transition-all duration-500 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0'
                 }`}
         >
-            <div className={`p-4 rounded-lg border shadow-lg ${info.bg} ${info.border} min-w-[300px]`}>
+            <div className={`p-4 rounded-lg border ${info.bg} ${info.border} min-w-[300px]`}>
                 <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-full bg-white shadow-sm">
+                    <div className="p-2 rounded-full bg-white">
                         {info.icon}
                     </div>
                     <div className="flex-1">

@@ -11,35 +11,50 @@ import {
 } from "@grabgo/ui";
 import { Button } from "@grabgo/ui";
 import { type Vendor } from "../../../../lib/mockData";
+import { apiClient } from "@grabgo/utils";
 
 interface SuspendVendorDialogProps {
     vendor: Vendor;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onSuccess?: (status: any) => void;
 }
 
 export function SuspendVendorDialog({
     vendor,
     open,
     onOpenChange,
+    onSuccess,
 }: SuspendVendorDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSuspending = vendor.status !== "closed" && vendor.status !== "suspended";
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
+        try {
+            let dbType = "";
+            if (vendor.type === "food") dbType = "restaurant";
+            else if (vendor.type === "grocery") dbType = "grocery";
+            else if (vendor.type === "pharmacy") dbType = "pharmacy";
+            else if (vendor.type === "market") dbType = "grabmart";
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+            const nextStatus = isSuspending ? "suspended" : "approved";
 
-        // TODO: Implement actual API call to suspend/unsuspend vendor
-        console.log(`${isSuspending ? 'Suspending' : 'Unsuspending'} vendor:`, vendor.id);
+            const res = await apiClient.put(`/admin/vendors/${dbType}/${vendor.id}/status`, {
+                status: nextStatus
+            });
 
-        setIsSubmitting(false);
-        onOpenChange(false);
-
-        // Show success message
-        alert(`Vendor ${isSuspending ? 'suspended' : 'unsuspended'} successfully!`);
+            if (res.data.success) {
+                alert(`Vendor successfully ${isSuspending ? 'suspended' : 'unsuspended'}!`);
+                if (onSuccess) onSuccess(nextStatus === "suspended" ? "closed" : "open");
+            }
+        } catch (err) {
+            console.error("Failed to suspend/unsuspend vendor:", err);
+            alert("Failed to suspend/unsuspend vendor.");
+        } finally {
+            setIsSubmitting(false);
+            onOpenChange(false);
+        }
     };
 
     return (
