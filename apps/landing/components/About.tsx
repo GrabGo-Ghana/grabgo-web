@@ -93,7 +93,7 @@ export default function AboutUs() {
             About Us
           </h1>
           <p className="text-white/95 text-xl xl:text-2xl font-medium leading-relaxed max-w-4xl mx-auto drop-shadow-sm">
-            GrabGo as a marketplace and logistics platform for restaurants in Ghana operates with the sole aim of making food delivery in Ghana fast, reliable and affordable. Our mission is to create value for our customers, vendors and riders across the delivery chain, thereby empowering businesses, growing local economies and satisfying consumers.
+            GrabGo Ghana is a marketplace and logistics platform built to make food delivery in Ghana fast, reliable, and affordable. We connect customers, restaurants, vendors, and riders across the delivery chain, helping local businesses grow while making everyday delivery easier for consumers.
           </p>
           <a
             href="#customers"
