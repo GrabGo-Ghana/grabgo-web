@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@grabgo/ui";
-import { getOrderById, OrderStatus } from "../../../../lib/mockOrderData";
+import { OrderStatus } from "../../../../lib/mockOrderData";
 import { NavArrowLeft, User, Shop, Cycling, MapPin, CreditCard, Package, Clock, CheckCircle, Download, Printer } from "iconoir-react";
 import { AssignRiderDialog } from "../../../../components/orders/AssignRiderDialog";
 import { UpdateStatusDialog } from "../../../../components/orders/UpdateStatusDialog";
@@ -12,6 +12,7 @@ import { CancelOrderDialog } from "../../../../components/orders/CancelOrderDial
 import { ProcessRefundDialog } from "../../../../components/orders/ProcessRefundDialog";
 import { OrderChatView } from "../../../../components/orders/OrderChatView";
 import { exportOrderToCSV, exportOrderToExcel, printOrderReceipt } from "../../../../lib/orderExportUtils";
+import { apiClient } from "@grabgo/utils";
 
 export default function OrderDetailPage() {
     const params = useParams();
@@ -24,21 +25,42 @@ export default function OrderDetailPage() {
     const [cancelOrderOpen, setCancelOrderOpen] = useState(false);
     const [refundDialogOpen, setRefundDialogOpen] = useState(false);
 
-    const order = getOrderById(orderId);
+    // Data fetching states
+    const [order, setOrder] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    if (!order) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold mb-2">Order Not Found</h2>
-                    <p className="text-muted-foreground mb-4">The order you&apos;re looking for doesn&apos;t exist.</p>
-                    <Link href="/orders" className="text-[#FE6132] hover:underline">
-                        Back to Orders
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+    useEffect(() => {
+        let isMounted = true;
+        const fetchOrder = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const res = await apiClient.get(`/admin/orders/${orderId}`);
+                if (isMounted && res.data && res.data.success) {
+                    setOrder(res.data.data);
+                } else if (isMounted) {
+                    setError("Failed to fetch order details");
+                }
+            } catch (err: any) {
+                console.error("Error fetching order details:", err);
+                if (isMounted) {
+                    setError(err.response?.data?.message || "Error fetching order details");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchOrder();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [orderId, refreshTrigger]);
 
     const getStatusColor = (status: OrderStatus) => {
         const colors: Record<OrderStatus, string> = {
@@ -47,11 +69,11 @@ export default function OrderDetailPage() {
             preparing: 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:bg-purple-500/20 dark:text-purple-400',
             ready: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:bg-indigo-500/20 dark:text-indigo-400',
             picked_up: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20 dark:bg-cyan-500/20 dark:text-cyan-400',
-            on_the_way: 'bg-orange-500/10 text-orange-600 border-orange-500/20 dark:bg-orange-500/20 dark:text-orange-400',
+            on_the_way: 'bg-orange-500/10 text-orange-600 border-orange-500/20 dark:bg-[#FE6132]/20 dark:text-orange-400',
             delivered: 'bg-green-500/10 text-green-600 border-green-500/20 dark:bg-green-500/20 dark:text-green-400',
             cancelled: 'bg-red-500/10 text-red-600 border-red-500/20 dark:bg-red-500/20 dark:text-red-400'
         };
-        return colors[status];
+        return colors[status] || 'bg-gray-500/10 text-gray-600';
     };
 
     const getStatusIcon = (status: OrderStatus): React.ReactElement => {
@@ -65,7 +87,7 @@ export default function OrderDetailPage() {
             delivered: <CheckCircle className="w-4 h-4" />,
             cancelled: <CheckCircle className="w-4 h-4" />
         };
-        return icons[status];
+        return icons[status] || <Clock className="w-4 h-4" />;
     };
 
     const formatDate = (dateString: string) => {
@@ -73,13 +95,6 @@ export default function OrderDetailPage() {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const formatTime = (dateString: string) => {
-        return new Date(dateString).toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'
         });
@@ -96,36 +111,74 @@ export default function OrderDetailPage() {
     };
 
     // Action handlers
-    const handleAssignRider = (riderId: string) => {
-        console.log('Assigning rider:', riderId);
-        // TODO: Implement API call to assign rider
-        alert(`Rider ${riderId} assigned successfully!`);
-        // Refresh page or update state
-        router.refresh();
+    const handleAssignRider = async (riderId: string) => {
+        try {
+            const res = await apiClient.put(`/admin/orders/${orderId}/assign-rider`, { riderId });
+            if (res.data && res.data.success) {
+                alert("Rider assigned successfully!");
+                setRefreshTrigger(prev => prev + 1);
+            } else {
+                alert(res.data.message || "Failed to assign rider");
+            }
+        } catch (err: any) {
+            console.error("Assign rider failed:", err);
+            alert(err.response?.data?.message || "Failed to assign rider");
+        }
     };
 
-    const handleUpdateStatus = (newStatus: OrderStatus, note?: string) => {
-        console.log('Updating status to:', newStatus, 'Note:', note);
-        // TODO: Implement API call to update status
-        alert(`Order status updated to ${newStatus}${note ? ` with note: ${note}` : ''}`);
-        // Refresh page or update state
-        router.refresh();
+    const handleUpdateStatus = async (newStatus: OrderStatus, note?: string) => {
+        try {
+            const res = await apiClient.put(`/admin/orders/${orderId}/override`, {
+                status: newStatus,
+                reason: note || "Manual order status override"
+            });
+            if (res.data && res.data.success) {
+                alert(`Order status updated to ${newStatus}`);
+                setRefreshTrigger(prev => prev + 1);
+            } else {
+                alert(res.data.message || "Failed to update status");
+            }
+        } catch (err: any) {
+            console.error("Update status failed:", err);
+            alert(err.response?.data?.message || "Failed to update status");
+        }
     };
 
-    const handleCancelOrder = (reason: string) => {
-        console.log('Cancelling order with reason:', reason);
-        // TODO: Implement API call to cancel order
-        alert(`Order cancelled. Reason: ${reason}`);
-        // Redirect to orders list
-        router.push('/orders');
+    const handleCancelOrder = async (reason: string) => {
+        try {
+            const res = await apiClient.put(`/admin/orders/${orderId}/override`, {
+                status: "cancelled",
+                reason
+            });
+            if (res.data && res.data.success) {
+                alert("Order cancelled successfully");
+                setRefreshTrigger(prev => prev + 1);
+            } else {
+                alert(res.data.message || "Failed to cancel order");
+            }
+        } catch (err: any) {
+            console.error("Cancel order failed:", err);
+            alert(err.response?.data?.message || "Failed to cancel order");
+        }
     };
 
-    const handleRefund = (amount: number, reason: string) => {
-        console.log('Processing refund:', amount, 'Reason:', reason);
-        // TODO: Implement API call to process refund
-        alert(`Refund of GH₵ ${amount.toFixed(2)} processed successfully!\nReason: ${reason}`);
-        // Refresh page or update state
-        router.refresh();
+    const handleRefund = async (amount: number, reason: string) => {
+        try {
+            const res = await apiClient.post(`/admin/finance/refunds`, {
+                orderId,
+                amount,
+                reason
+            });
+            if (res.data && res.data.success) {
+                alert(`Refund of GH₵ ${amount.toFixed(2)} processed successfully!`);
+                setRefreshTrigger(prev => prev + 1);
+            } else {
+                alert(res.data.message || "Failed to process refund");
+            }
+        } catch (err: any) {
+            console.error("Refund failed:", err);
+            alert(err.response?.data?.message || "Failed to process refund");
+        }
     };
 
     const handleExportCSV = () => {
@@ -140,6 +193,31 @@ export default function OrderDetailPage() {
         printOrderReceipt(order);
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-4">
+                    <div className="w-10 h-10 border-4 border-[#FE6132] border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-muted-foreground font-medium text-lg">Retrieving order details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !order) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-2">Order Not Found</h2>
+                    <p className="text-muted-foreground mb-4">{error || "The order you're looking for doesn't exist."}</p>
+                    <Link href="/orders" className="text-[#FE6132] hover:underline">
+                        Back to Orders
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -147,7 +225,7 @@ export default function OrderDetailPage() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="p-2.5 rounded-full hover:bg-accent transition-all hover:scale-110 active:scale-90"
+                        className="p-2.5 rounded-full hover:bg-accent transition-all active:scale-90"
                     >
                         <NavArrowLeft className="w-6 h-6" />
                     </button>
@@ -155,7 +233,7 @@ export default function OrderDetailPage() {
                         <h1 className="text-4xl font-bold tracking-tight">Order {order.orderNumber}</h1>
                         <p className="text-muted-foreground mt-1 text-lg">Placed on {formatDate(order.createdAt)}</p>
                     </div>
-                    <div className={`px-6 py-2.5 rounded-full border-2 font-bold capitalize text-sm shadow-sm ${getStatusColor(order.status)}`}>
+                    <div className={`px-6 py-2.5 rounded-full border-2 font-bold capitalize text-sm ${getStatusColor(order.status)}`}>
                         {order.status.replace('_', ' ')}
                     </div>
                 </div>
@@ -165,19 +243,19 @@ export default function OrderDetailPage() {
                     <div className="flex gap-4">
                         <button
                             onClick={() => setUpdateStatusOpen(true)}
-                            className="px-6 py-2.5 text-sm rounded-full bg-[#FE6132] text-white hover:bg-[#FE6132]/90 transition-all font-bold shadow-md shadow-[#FE6132]/20 dark:shadow-none hover:scale-105 active:scale-95"
+                            className="px-6 py-2.5 text-sm rounded-full bg-[#FE6132] text-white hover:bg-[#FE6132]/90 transition-all font-bold active:scale-95"
                         >
                             Update Status
                         </button>
                         <button
                             onClick={() => setAssignRiderOpen(true)}
-                            className="px-6 py-2.5 text-sm rounded-full border border-border bg-background hover:bg-accent transition-all font-bold shadow-sm hover:scale-105 active:scale-95"
+                            className="px-6 py-2.5 text-sm rounded-full border border-border bg-background hover:bg-accent transition-all font-bold active:scale-95"
                         >
                             {order.rider ? 'Reassign Rider' : 'Assign Rider'}
                         </button>
                         <button
                             onClick={() => setCancelOrderOpen(true)}
-                            className="px-6 py-2.5 text-sm rounded-full border border-red-500/50 text-red-600 hover:bg-red-500/10 transition-all font-bold shadow-sm hover:scale-105 active:scale-95"
+                            className="px-6 py-2.5 text-sm rounded-full border border-red-500/50 text-red-600 hover:bg-red-500/10 transition-all font-bold active:scale-95"
                         >
                             Cancel Order
                         </button>
@@ -209,20 +287,20 @@ export default function OrderDetailPage() {
                 {/* Left Column - Main Info */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Order Timeline */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms] hover:shadow-md transition-shadow">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms]">
                         <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
                             <Clock className="w-5 h-5 text-[#FE6132]" />
                             Order Timeline
                         </h2>
                         <div className="space-y-0">
-                            {order.timeline.map((update, index) => (
+                            {order.timeline.map((update: any, index: number) => (
                                 <div
                                     key={index}
                                     className="flex gap-6 animate-fade-in-up"
                                     style={{ animationDelay: `${200 + index * 100}ms` }}
                                 >
                                     <div className="flex flex-col items-center">
-                                        <div className={`p-2.5 rounded-full shadow-sm transition-transform hover:scale-110 ${getStatusColor(update.status)}`}>
+                                        <div className={`p-2.5 rounded-full transition-transform ${getStatusColor(update.status)}`}>
                                             {getStatusIcon(update.status)}
                                         </div>
                                         {index < order.timeline.length - 1 && (
@@ -244,29 +322,29 @@ export default function OrderDetailPage() {
                     </Card>
 
                     {/* Order Items */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:200ms] hover:shadow-md transition-shadow">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:200ms]">
                         <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
                             <Package className="w-5 h-5 text-[#FE6132]" />
                             Order Items
                         </h2>
                         <div className="space-y-4">
-                            {order.items.map((item, idx) => (
+                            {order.items.map((item: any, idx: number) => (
                                 <div
                                     key={item.id}
                                     className="flex items-center justify-between py-4 border-b border-border/50 last:border-0 hover:bg-accent/10 rounded-xl px-2 transition-colors animate-fade-in-up"
                                     style={{ animationDelay: `${300 + idx * 50}ms` }}
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 rounded-2xl bg-accent/50 flex items-center justify-center shadow-inner group overflow-hidden">
-                                            <Package className="w-8 h-8 text-muted-foreground group-hover:scale-110 transition-transform" />
+                                        <div className="w-16 h-16 rounded-2xl bg-accent/50 flex items-center justify-center group overflow-hidden">
+                                            <Package className="w-8 h-8 text-muted-foreground transition-transform" />
                                         </div>
                                         <div>
                                             <p className="font-bold text-foreground">{item.name}</p>
                                             <p className="text-sm font-medium text-muted-foreground">Quantity: {item.quantity}</p>
-                                            {item.specialInstructions && (
+                                            {(item.notes || item.specialInstructions) && (
                                                 <div className="flex items-start gap-1.5 mt-2 bg-[#FE6132]/5 p-2 rounded-lg border border-[#FE6132]/20">
                                                     <span className="text-[10px] text-[#FE6132] font-bold uppercase tracking-wider">Note:</span>
-                                                    <p className="text-xs text-[#FE6132]/80 italic">{item.specialInstructions}</p>
+                                                    <p className="text-xs text-[#FE6132]/80 italic">{item.notes || item.specialInstructions}</p>
                                                 </div>
                                             )}
                                         </div>
@@ -307,7 +385,7 @@ export default function OrderDetailPage() {
                 {/* Right Column - Details */}
                 <div className="space-y-6">
                     {/* Customer Info */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:300ms] hover:shadow-md transition-all group">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:300ms] transition-all group">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-lg bg-[#FE6132]/10 group-hover:bg-[#FE6132]/20 transition-colors">
                                 <User className="w-5 h-5 text-[#FE6132]" />
@@ -316,7 +394,7 @@ export default function OrderDetailPage() {
                         </div>
                         <div className="space-y-4">
                             <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 flex items-center justify-center text-white text-xl font-bold shadow-sm ring-4 ring-[#FE6132]/5">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 flex items-center justify-center text-white text-xl font-bold ring-4 ring-[#FE6132]/5">
                                     {order.customer.name.charAt(0)}
                                 </div>
                                 <div className="flex-1">
@@ -342,7 +420,7 @@ export default function OrderDetailPage() {
                     </Card>
 
                     {/* Vendor Info */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:400ms] hover:shadow-md transition-all group">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:400ms] transition-all group">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-lg bg-[#FE6132]/10 group-hover:bg-[#FE6132]/20 transition-colors">
                                 <Shop className="w-5 h-5 text-[#FE6132]" />
@@ -381,7 +459,7 @@ export default function OrderDetailPage() {
 
                     {/* Rider Info */}
                     {order.rider && (
-                        <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:500ms] hover:shadow-md transition-all group">
+                        <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:500ms] transition-all group">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 rounded-lg bg-[#FE6132]/10 group-hover:bg-[#FE6132]/20 transition-colors">
                                     <Cycling className="w-5 h-5 text-[#FE6132]" />
@@ -390,7 +468,7 @@ export default function OrderDetailPage() {
                             </div>
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-[#FE6132]/10 flex items-center justify-center text-2xl shadow-inner">
+                                    <div className="w-14 h-14 rounded-2xl bg-[#FE6132]/10 flex items-center justify-center text-2xl">
                                         🚴
                                     </div>
                                     <div className="flex-1">
@@ -421,7 +499,7 @@ export default function OrderDetailPage() {
                     )}
 
                     {/* Delivery Info */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:600ms] hover:shadow-md transition-all group">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:600ms] transition-all group">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-lg bg-[#FE6132]/10 group-hover:bg-[#FE6132]/20 transition-colors">
                                 <MapPin className="w-5 h-5 text-[#FE6132]" />
@@ -448,14 +526,14 @@ export default function OrderDetailPage() {
                                         <Clock className="w-5 h-5" />
                                         <span className="text-sm font-bold">Expected Delivery</span>
                                     </div>
-                                    <span className="text-sm font-bold text-green-500">{order.delivery.estimatedTime}</span>
+                                    <span className="text-sm font-bold text-green-500">{formatDate(order.delivery.estimatedTime)}</span>
                                 </div>
                             )}
                         </div>
                     </Card>
 
                     {/* Payment Info */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:700ms] hover:shadow-md transition-all group">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:700ms] transition-all group">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 rounded-lg bg-[#FE6132]/10 group-hover:bg-[#FE6132]/20 transition-colors">
                                 <CreditCard className="w-5 h-5 text-[#FE6132]" />
@@ -489,7 +567,7 @@ export default function OrderDetailPage() {
                                 <div className="pt-4">
                                     <button
                                         onClick={() => setRefundDialogOpen(true)}
-                                        className="w-full px-6 py-3 text-sm font-bold rounded-xl border border-[#FE6132]/20 text-[#FE6132] bg-[#FE6132]/5 hover:bg-[#FE6132]/10 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm"
+                                        className="w-full px-6 py-3 text-sm font-bold rounded-xl border border-[#FE6132]/20 text-[#FE6132] bg-[#FE6132]/5 hover:bg-[#FE6132]/10 rounded-xl transition-all active:scale-95"
                                     >
                                         Process Order Refund
                                     </button>
@@ -499,7 +577,7 @@ export default function OrderDetailPage() {
                     </Card>
 
                     {/* Export & Print Actions */}
-                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:800ms] hover:shadow-md transition-all">
+                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:800ms] transition-all">
                         <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
                             <Printer className="w-5 h-5 text-[#FE6132]" />
                             Operational Actions
@@ -507,7 +585,7 @@ export default function OrderDetailPage() {
                         <div className="grid grid-cols-1 gap-3">
                             <button
                                 onClick={handlePrint}
-                                className="flex-1 flex items-center justify-center gap-3 px-6 py-3 text-sm font-bold rounded-xl border border-border bg-background hover:bg-accent transition-all hover:scale-[1.02] active:scale-95"
+                                className="flex-1 flex items-center justify-center gap-3 px-6 py-3 text-sm font-bold rounded-xl border border-border bg-background hover:bg-accent transition-all active:scale-95"
                             >
                                 <Printer className="w-5 h-5 text-[#FE6132]" />
                                 Print Professional Receipt
@@ -515,14 +593,14 @@ export default function OrderDetailPage() {
                             <div className="flex gap-3">
                                 <button
                                     onClick={handleExportCSV}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-border bg-background hover:bg-accent transition-all hover:scale-[1.02] active:scale-95"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-border bg-background hover:bg-accent transition-all active:scale-95"
                                 >
                                     <Download className="w-4 h-4" />
                                     Export CSV
                                 </button>
                                 <button
                                     onClick={handleExportExcel}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-border bg-background hover:bg-accent transition-all hover:scale-[1.02] active:scale-95"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs font-bold rounded-xl border border-border bg-background hover:bg-accent transition-all active:scale-95"
                                 >
                                     <Download className="w-4 h-4" />
                                     Export Excel
@@ -533,12 +611,12 @@ export default function OrderDetailPage() {
 
                     {/* Notes */}
                     {order.notes && (
-                        <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:900ms] bg-yellow-500/5 border-dashed hover:shadow-md transition-all">
+                        <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:900ms] bg-yellow-500/5 border-dashed transition-all">
                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                                 <span className="text-xl">📌</span>
                                 Order Notes
                             </h2>
-                            <p className="text-sm text-foreground font-medium bg-card p-4 rounded-xl border border-border/50 shadow-sm leading-relaxed">
+                            <p className="text-sm text-foreground font-medium bg-card p-4 rounded-xl border border-border/50 leading-relaxed">
                                 {order.notes}
                             </p>
                         </Card>

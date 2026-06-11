@@ -257,8 +257,8 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Filters & Controls */}
-            <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms] hover:shadow-md transition-shadow">
-                <div className="grid gap-6 md:grid-cols-3">
+            <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms]">
+<div className="grid gap-6 md:grid-cols-3">
                     {/* Report Type Selector */}
                     <div>
                         <label className="text-xs font-black uppercase tracking-widest text-[#FE6132] mb-2 block">Analytical Lens</label>
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
                             <SelectTrigger className="w-full h-11 rounded-xl border-border bg-accent/30 text-foreground font-bold focus:ring-2 focus:ring-[#FE6132]/20 transition-all outline-none">
                                 <SelectValue placeholder="Select report" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border/50 shadow-xl bg-card text-foreground">
+                            <SelectContent className="rounded-xl border-border/50 bg-card text-foreground">
                                 {reportTypes.map((type) => (
                                     <SelectItem key={type.value} value={type.value} className="font-medium rounded-lg cursor-pointer my-0.5">
                                         {type.label}
@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
                             <SelectTrigger className="w-full h-11 rounded-xl border-border bg-accent/30 text-foreground font-bold focus:ring-2 focus:ring-[#FE6132]/20 transition-all outline-none">
                                 <SelectValue placeholder="Select range" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border/50 shadow-xl bg-card text-foreground">
+                            <SelectContent className="rounded-xl border-border/50 bg-card text-foreground">
                                 {dateRangePresets.map((preset) => (
                                     <SelectItem key={preset.value} value={preset.value} className="font-medium rounded-lg cursor-pointer my-0.5">
                                         {preset.label}
@@ -299,21 +299,21 @@ export default function AnalyticsPage() {
                         <div className="flex gap-2">
                             <button
                                 onClick={exportToCSV}
-                                className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-accent transition-all flex items-center justify-center gap-2 font-bold shadow-sm active:scale-95"
+                                className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-accent transition-all flex items-center justify-center gap-2 font-bold active:scale-95"
                             >
                                 <Download className="w-4 h-4" />
                                 <span className="text-sm">CSV</span>
                             </button>
                             <button
                                 onClick={exportToExcel}
-                                className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-accent transition-all flex items-center justify-center gap-2 font-bold shadow-sm active:scale-95"
+                                className="flex-1 px-3 py-2.5 rounded-xl border border-border bg-background hover:bg-accent transition-all flex items-center justify-center gap-2 font-bold active:scale-95"
                             >
                                 <Download className="w-4 h-4" />
                                 <span className="text-sm">Excel</span>
                             </button>
                             <button
                                 onClick={handlePrint}
-                                className="px-4 py-2.5 rounded-xl border border-border bg-background hover:bg-accent transition-all flex items-center justify-center font-bold shadow-sm active:scale-95"
+                                className="px-4 py-2.5 rounded-xl border border-border bg-background hover:bg-accent transition-all flex items-center justify-center font-bold active:scale-95"
                                 title="Print Report"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,7 +424,7 @@ export default function AnalyticsPage() {
                             <div className="space-y-6">
                                 {/* Summary Cards */}
                                 <div className="grid gap-6 md:grid-cols-3">
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:200ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:200ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Total Active Users</p>
                                         <p className="text-4xl font-black mt-2 text-foreground group-hover:text-[#FE6132] transition-colors"><AnimatedNumber value={12458} delay={200} /></p>
                                         <div className="flex items-center gap-2 mt-2">
@@ -432,7 +432,7 @@ export default function AnalyticsPage() {
                                             <p className="text-xs font-bold text-muted-foreground">vs last month</p>
                                         </div>
                                     </Card>
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:300ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:300ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">New Acquisitions</p>
                                         <p className="text-4xl font-black mt-2 text-foreground group-hover:text-[#FE6132] transition-colors"><AnimatedNumber value={1247} delay={300} /></p>
                                         <div className="flex items-center gap-2 mt-2">
@@ -440,7 +440,7 @@ export default function AnalyticsPage() {
                                             <p className="text-xs font-bold text-muted-foreground">vs prev. period</p>
                                         </div>
                                     </Card>
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:400ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:400ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Velocity Curve</p>
                                         <p className="text-4xl font-black mt-2 text-foreground group-hover:text-[#FE6132] transition-colors"><AnimatedNumber value={42} delay={400} /></p>
                                         <p className="text-xs font-bold text-muted-foreground mt-2">Daily Growth Average</p>
@@ -448,7 +448,7 @@ export default function AnalyticsPage() {
                                 </div>
 
                                 {/* User Growth Chart */}
-                                <Card className="p-8 border-border/50 animate-fade-in-up [animation-delay:500ms] hover:shadow-md transition-all">
+                                <Card className="p-8 border-border/50 animate-fade-in-up [animation-delay:500ms] transition-all">
                                     <h3 className="text-xl font-black mb-8">User Growth Trendline</h3>
                                     <LineChart
                                         data={mockUserGrowthData.map(d => ({
@@ -503,22 +503,22 @@ export default function AnalyticsPage() {
                             <div className="space-y-6">
                                 {/* Revenue Summary Cards */}
                                 <div className="grid gap-6 md:grid-cols-4">
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:200ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:200ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-[#FE6132]">Gross Revenue</p>
                                         <p className="text-3xl font-black mt-2">GH₵ 97,950</p>
                                         <p className="text-xs font-black text-green-600 mt-2 uppercase tracking-wide">+15.3% vs LW</p>
                                     </Card>
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:300ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:300ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Unit Ticket</p>
                                         <p className="text-3xl font-black mt-2">GH₵ 84.50</p>
                                         <p className="text-xs font-black text-muted-foreground mt-2 uppercase tracking-wide">Avg. per order</p>
                                     </Card>
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:400ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:400ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-[#FE6132]">Volume Base</p>
                                         <p className="text-3xl font-black mt-2">1,155</p>
                                         <p className="text-xs font-black text-green-600 mt-2 uppercase tracking-wide">+8.7% vs LW</p>
                                     </Card>
-                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:500ms] hover:shadow-lg transition-all group">
+                                    <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:500ms] transition-all group">
                                         <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Daily Index</p>
                                         <p className="text-3xl font-black mt-2">GH₵ 13.9k</p>
                                         <p className="text-xs font-black text-muted-foreground mt-2 uppercase tracking-wide">Mean Revenue</p>
@@ -526,7 +526,7 @@ export default function AnalyticsPage() {
                                 </div>
 
                                 {/* Revenue Trend Chart */}
-                                <Card className="p-8 border-border/50 animate-fade-in-up [animation-delay:600ms] hover:shadow-md transition-all">
+                                <Card className="p-8 border-border/50 animate-fade-in-up [animation-delay:600ms] transition-all">
                                     <h3 className="text-xl font-black mb-8">Revenue Momentum (L7D)</h3>
                                     <BarChart
                                         data={mockRevenueData.map(d => ({

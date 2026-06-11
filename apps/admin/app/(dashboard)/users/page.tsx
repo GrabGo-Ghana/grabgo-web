@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
     Card,
@@ -24,8 +24,9 @@ import {
     DropdownMenuTrigger,
 } from "@grabgo/ui";
 import { Search, Filter, Download, Plus, CheckCircleSolid, Xmark } from "iconoir-react";
-import { mockCustomers, type Customer } from "../../../lib/mockData";
+import { type Customer } from "../../../lib/mockData";
 import { format } from "date-fns";
+import { apiClient } from "@grabgo/utils";
 
 export default function UsersPage() {
     const router = useRouter();
@@ -34,48 +35,69 @@ export default function UsersPage() {
     const [verificationFilter, setVerificationFilter] = useState<"all" | "verified" | "unverified">("all");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [customers] = useState<Customer[]>(mockCustomers);
+    const [customers, setCustomers] = useState<Customer[]>([]);
+    const [totalCustomers, setTotalCustomers] = useState(0);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-    // Simulate initial loading
-    useMemo(() => {
-        const timer = setTimeout(() => {
-            setIsInitialLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, []);
+    useEffect(() => {
+        let isMounted = true;
+        const fetchCustomers = async () => {
+            setIsInitialLoading(true);
+            try {
+                const statusParam = statusFilter === "all" ? "" : statusFilter;
+                const response = await apiClient.get(`/admin/users?page=${currentPage}&limit=${itemsPerPage}&status=${statusParam}&q=${searchQuery}`);
+                if (isMounted && response.data.success) {
+                    const backendUsers = response.data.data.users.map((u: any) => ({
+                        id: u.id,
+                        username: u.username,
+                        email: u.email,
+                        phone: u.phone,
+                        isActive: u.isActive,
+                        totalOrders: u.totalOrders,
+                        totalSpending: u.totalSpending,
+                        createdAt: u.createdAt,
+                        emailVerified: true,
+                        phoneVerified: true
+                    }));
+                    setCustomers(backendUsers);
+                    setTotalCustomers(response.data.data.total);
+                }
+            } catch (error) {
+                console.error("Failed to fetch customers:", error);
+            } finally {
+                if (isMounted) {
+                    setIsInitialLoading(false);
+                }
+            }
+        };
 
-    // Apply all filters
+        const timer = setTimeout(() => {
+            fetchCustomers();
+        }, 300);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(timer);
+        };
+    }, [currentPage, itemsPerPage, statusFilter, searchQuery]);
+
+    // Apply verification filters local to the current page's dataset
     const filteredCustomers = useMemo(() => {
         return customers.filter((customer) => {
-            // Search filter
-            const query = searchQuery.toLowerCase();
-            const matchesSearch =
-                customer.username.toLowerCase().includes(query) ||
-                customer.email.toLowerCase().includes(query) ||
-                customer.phone.includes(query);
-
-            // Status filter
-            const matchesStatus =
-                statusFilter === "all" ||
-                (statusFilter === "active" && customer.isActive) ||
-                (statusFilter === "inactive" && !customer.isActive);
-
-            // Verification filter
             const matchesVerification =
                 verificationFilter === "all" ||
                 (verificationFilter === "verified" && customer.emailVerified && customer.phoneVerified) ||
                 (verificationFilter === "unverified" && (!customer.emailVerified || !customer.phoneVerified));
 
-            return matchesSearch && matchesStatus && matchesVerification;
+            return matchesVerification;
         });
-    }, [customers, searchQuery, statusFilter, verificationFilter]);
+    }, [customers, verificationFilter]);
 
-    // Pagination calculations
-    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    // Pagination calculations based on backend numbers
+    const totalPages = Math.ceil(totalCustomers / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredCustomers.length);
-    const paginatedCustomers = filteredCustomers.slice(startIndex, endIndex);
+    const endIndex = Math.min(startIndex + filteredCustomers.length, totalCustomers);
+    const paginatedCustomers = filteredCustomers;
 
     // Reset to page 1 when filters change
     const handleFilterChange = () => {
@@ -134,7 +156,7 @@ export default function UsersPage() {
                     </p>
                 </div>
                 <Button
-                    className="bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 text-white hover:shadow-lg hover:shadow-orange-200 dark:hover:shadow-none transition-all font-bold rounded-xl h-12 px-6 hover:scale-105 active:scale-95"
+                    className="bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 text-white transition-all font-bold rounded-xl h-12 px-6 active:scale-95"
                 >
                     <Plus className="w-5 h-5 mr-2" />
                     Expand Network
@@ -142,7 +164,7 @@ export default function UsersPage() {
             </div>
 
             {/* Filters and Search */}
-            <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms] hover:shadow-md transition-shadow">
+            <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms]">
                 <div className="flex items-center gap-4">
                     <div className="flex-1 relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-[#FE6132] transition-colors" />
@@ -165,8 +187,7 @@ export default function UsersPage() {
                                 )}
                             </Button>
                         </DropdownMenuTrigger>
-                        {/* ... content remains same ... */}
-                        <DropdownMenuContent align="end" className="w-64 p-2 rounded-xl border-border/50 shadow-xl">
+                        <DropdownMenuContent align="end" className="w-64 p-2 rounded-xl border-border/50">
                             <DropdownMenuLabel className="px-3 py-2 text-xs font-black uppercase tracking-widest text-muted-foreground">Account Status</DropdownMenuLabel>
                             <DropdownMenuRadioGroup
                                 value={statusFilter}
@@ -208,7 +229,7 @@ export default function UsersPage() {
                     </DropdownMenu>
                     <Button
                         variant="outline"
-                        className="gap-2 border-border/50 h-12 px-5 rounded-xl font-bold hover:shadow-sm transition-all"
+                        className="gap-2 border-border/50 h-12 px-5 rounded-xl font-bold transition-all"
                         onClick={handleExport}
                         disabled={filteredCustomers.length === 0}
                     >
@@ -235,7 +256,6 @@ export default function UsersPage() {
                         </thead>
                         <tbody className="divide-y divide-border/50">
                             {isInitialLoading ? (
-                                // Skeleton Loaders
                                 Array.from({ length: itemsPerPage }).map((_, i) => (
                                     <tr key={`skeleton-${i}`} className="animate-pulse">
                                         <td className="p-4">
@@ -281,10 +301,9 @@ export default function UsersPage() {
                                         className="hover:bg-accent/40 transition-all cursor-pointer group animate-fade-in-up border-b border-border/50 last:border-0"
                                         style={{ animationDelay: `${200 + index * 50}ms` }}
                                     >
-                                        {/* Customer Info */}
                                         <td className="p-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 flex items-center justify-center text-white font-black shadow-sm group-hover:scale-110 transition-transform">
+                                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 flex items-center justify-center text-white font-black transition-transform">
                                                     {customer.username.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
@@ -296,7 +315,6 @@ export default function UsersPage() {
                                             </div>
                                         </td>
 
-                                        {/* Contact */}
                                         <td className="p-4">
                                             <div className="space-y-1.5">
                                                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -315,21 +333,18 @@ export default function UsersPage() {
                                             </div>
                                         </td>
 
-                                        {/* Status */}
                                         <td className="p-4">
-                                            <div className="group-hover:scale-105 transition-transform origin-left">
+                                            <div className="transition-transform origin-left">
                                                 <Badge variant={customer.isActive ? "success" : "destructive"}>
                                                     {customer.isActive ? "Active" : "Inactive"}
                                                 </Badge>
                                             </div>
                                         </td>
 
-                                        {/* Orders */}
                                         <td className="p-4">
                                             <div className="font-black text-foreground">{customer.totalOrders.toLocaleString()}</div>
                                         </td>
 
-                                        {/* Spending */}
                                         <td className="p-4">
                                             <div className="font-black text-foreground">
                                                 GH₵{customer.totalSpending.toLocaleString("en-GH", {
@@ -339,14 +354,12 @@ export default function UsersPage() {
                                             </div>
                                         </td>
 
-                                        {/* Joined Date */}
                                         <td className="p-4">
                                             <div className="text-sm font-bold text-muted-foreground">
                                                 {format(new Date(customer.createdAt), "MMM dd, yyyy")}
                                             </div>
                                         </td>
 
-                                        {/* Actions */}
                                         <td className="p-4">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Button variant="ghost" size="sm" className="rounded-lg h-9 font-bold hover:bg-accent transition-all ring-0 border-0 outline-none">
@@ -361,7 +374,6 @@ export default function UsersPage() {
                     </table>
                 </div>
 
-                {/* Empty State */}
                 {!isInitialLoading && filteredCustomers.length === 0 && (
                     <div className="p-12 text-center animate-fade-in">
                         <div className="flex flex-col items-center justify-center space-y-3">
@@ -386,7 +398,6 @@ export default function UsersPage() {
                     </div>
                 )}
 
-                {/* Pagination */}
                 <div className="border-t border-border/50 p-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">Show</span>
@@ -411,7 +422,7 @@ export default function UsersPage() {
                     </div>
 
                     <div className="text-sm text-muted-foreground">
-                        Showing {filteredCustomers.length > 0 ? startIndex + 1 : 0}-{endIndex} of {filteredCustomers.length} customers
+                        Showing {filteredCustomers.length > 0 ? startIndex + 1 : 0}-{endIndex} of {totalCustomers} customers
                     </div>
 
                     <div className="flex items-center gap-2">

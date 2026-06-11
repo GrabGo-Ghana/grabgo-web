@@ -2,7 +2,7 @@
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { useState, use, useEffect } from "react";
+import { useState, use, useEffect, useMemo } from "react";
 import { Card, Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from "@grabgo/ui";
 import {
     ArrowLeft,
@@ -22,17 +22,20 @@ import {
     FireFlame,
 } from "iconoir-react";
 import { TrendingUp } from "lucide-react";
-import { getVendorById, getVendorCatalog, getVendorOrders, type Vendor } from "../../../../lib/mockData";
+import { type Vendor } from "../../../../lib/mockData";
 import { format } from "date-fns";
 import { RejectVendorDialog } from "./RejectVendorDialog";
 import { SuspendVendorDialog } from "./SuspendVendorDialog";
 import { EditVendorDialog } from "./EditVendorDialog";
 import { DeliverySettingsDialog } from "./DeliverySettingsDialog";
+import { apiClient } from "@grabgo/utils";
+
 interface VendorPageProps {
     params: Promise<{
         id: string;
     }>;
 }
+
 // Animated Number Component
 function AnimatedNumber({ value, delay = 0, decimals = 0 }: { value: number; delay?: number; decimals?: number }) {
     const [count, setCount] = useState(0);
@@ -65,44 +68,169 @@ function AnimatedNumber({ value, delay = 0, decimals = 0 }: { value: number; del
 
 export default function VendorDetailPage({ params }: VendorPageProps) {
     const { id } = use(params);
-    const initialVendor = getVendorById(id);
-    const catalog = getVendorCatalog(id);
-    const recentOrders = getVendorOrders(id);
+    const [vendor, setVendor] = useState<any>(null);
+    const [catalog, setCatalog] = useState<any[]>([]);
+    const [recentOrders, setRecentOrders] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    if (!initialVendor) {
-        notFound();
-    }
-
-    const [vendor, setVendor] = useState(initialVendor);
-    const categories = Array.from(new Set(catalog.map(item => item.category)));
     const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
     const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deliverySettingsDialogOpen, setDeliverySettingsDialogOpen] = useState(false);
 
-    const handleStatusToggle = () => {
-        setVendor(prev => ({
-            ...prev,
-            status: prev.status === "open" ? "closed" : "open"
-        }));
+    useEffect(() => {
+        let isMounted = true;
+        const loadData = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const [vendorRes, catalogRes, ordersRes] = await Promise.all([
+                    apiClient.get(`/admin/vendors/${id}`),
+                    apiClient.get(`/admin/vendors/${id}/catalog`),
+                    apiClient.get(`/admin/orders?vendorId=${id}&limit=10`)
+                ]);
+
+                if (isMounted) {
+                    if (vendorRes.data.success) {
+                        const v = vendorRes.data.data;
+                        let uiType: "food" | "grocery" | "pharmacy" | "market" = "food";
+                        if (v.type === "restaurant") uiType = "food";
+                        else if (v.type === "grocery") uiType = "grocery";
+                        else if (v.type === "pharmacy") uiType = "pharmacy";
+                        else if (v.type === "grabmart") uiType = "market";
+
+                        let uiStatus: "open" | "closed" | "busy" | "under_review" | "suspended" = "open";
+                        if (v.status === "pending") uiStatus = "under_review";
+                        else if (v.status === "approved") uiStatus = "open";
+                        else if (v.status === "suspended") uiStatus = "closed";
+                        else if (v.status === "rejected") uiStatus = "closed";
+
+                        setVendor({
+                            id: v.id,
+                            name: v.name,
+                            type: uiType,
+                            ownerName: v.ownerName,
+                            email: v.email,
+                            phone: v.phone,
+                            address: v.address || "",
+                            status: uiStatus,
+                            rating: v.rating || 5.0,
+                            totalRevenue: v.totalRevenue || 0,
+                            orderCount: v.orderCount || 0,
+                            isVerified: v.isVerified || false,
+                            isFeatured: v.isFeatured || false,
+                            createdAt: v.createdAt,
+                            logo: v.logo || undefined,
+                            preparationTime: v.preparationTime || 30,
+                            deliveryRadius: v.deliveryRadius || 5,
+                            minOrderValue: v.minOrderValue || 0,
+                        });
+                    } else {
+                        setError("Failed to load vendor details");
+                    }
+
+                    if (catalogRes.data.success) {
+                        setCatalog(catalogRes.data.data);
+                    }
+
+                    if (ordersRes.data.success) {
+                        setRecentOrders(ordersRes.data.data.orders.map((o: any) => ({
+                            id: o.id,
+                            date: o.createdAt,
+                            items: o.itemsCount || 1,
+                            total: o.total,
+                            status: o.status === 'delivered' ? 'completed' : o.status === 'cancelled' ? 'cancelled' : 'pending'
+                        })));
+                    }
+                }
+            } catch (err: any) {
+                console.error("Error loading vendor details:", err);
+                if (isMounted) {
+                    setError(err.response?.data?.message || "Server error loading vendor details");
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        loadData();
+        return () => {
+            isMounted = false;
+        };
+    }, [id]);
+
+    const categories = useMemo(() => Array.from(new Set(catalog.map(item => item.category))), [catalog]);
+
+    const handleStatusToggle = async () => {
+        if (!vendor) return;
+        try {
+            let dbType = "";
+            if (vendor.type === "food") dbType = "restaurant";
+            else if (vendor.type === "grocery") dbType = "grocery";
+            else if (vendor.type === "pharmacy") dbType = "pharmacy";
+            else if (vendor.type === "market") dbType = "grabmart";
+
+            const isCurrentlyOpen = vendor.status === "open";
+            const nextStatus = isCurrentlyOpen ? "suspended" : "approved";
+
+            const res = await apiClient.put(`/admin/vendors/${dbType}/${vendor.id}/status`, {
+                status: nextStatus
+            });
+
+            if (res.data.success) {
+                setVendor((prev: any) => ({
+                    ...prev,
+                    status: isCurrentlyOpen ? "closed" : "open"
+                }));
+                alert(`Vendor status successfully updated to ${isCurrentlyOpen ? "closed" : "open"}!`);
+            }
+        } catch (err) {
+            console.error("Failed to toggle vendor status:", err);
+            alert("Failed to toggle vendor status.");
+        }
     };
 
-    const handleVerifyVendor = () => {
-        setVendor(prev => ({
-            ...prev,
-            isVerified: true,
-            status: prev.status === "under_review" ? "open" : prev.status
-        }));
+    const handleVerifyVendor = async () => {
+        if (!vendor) return;
+        try {
+            let dbType = "";
+            if (vendor.type === "food") dbType = "restaurant";
+            else if (vendor.type === "grocery") dbType = "grocery";
+            else if (vendor.type === "pharmacy") dbType = "pharmacy";
+            else if (vendor.type === "market") dbType = "grabmart";
+
+            const res = await apiClient.put(`/admin/vendors/${dbType}/${vendor.id}/status`, {
+                status: "approved"
+            });
+
+            if (res.data.success) {
+                setVendor((prev: any) => ({
+                    ...prev,
+                    isVerified: true,
+                    status: "open"
+                }));
+                alert("Vendor application successfully approved!");
+            }
+        } catch (err) {
+            console.error("Failed to approve vendor application:", err);
+            alert("Failed to approve vendor application.");
+        }
     };
 
     const handleFeaturedToggle = () => {
-        setVendor(prev => ({
-            ...prev,
-            isFeatured: !prev.isFeatured
-        }));
+        setVendor((prev: any) => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                isFeatured: !prev.isFeatured
+            };
+        });
     };
 
-    const getStatusVariant = (status: Vendor["status"]) => {
+    const getStatusVariant = (status: any) => {
         switch (status) {
             case "open": return "success";
             case "busy": return "warning";
@@ -111,6 +239,25 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
             default: return "secondary";
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="h-96 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#FE6132]" />
+            </div>
+        );
+    }
+
+    if (error || !vendor) {
+        return (
+            <div className="h-96 flex flex-col items-center justify-center gap-4">
+                <p className="text-muted-foreground font-medium">{error || "Vendor not found."}</p>
+                <Link href="/vendors">
+                    <Button variant="outline">Back to Vendors</Button>
+                </Link>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 space-y-6">
@@ -228,11 +375,17 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                 vendor={vendor}
                 open={rejectDialogOpen}
                 onOpenChange={setRejectDialogOpen}
+                onSuccess={(status) => {
+                    setVendor((prev: any) => ({ ...prev, status }));
+                }}
             />
             <SuspendVendorDialog
                 vendor={vendor}
                 open={suspendDialogOpen}
                 onOpenChange={setSuspendDialogOpen}
+                onSuccess={(status) => {
+                    setVendor((prev: any) => ({ ...prev, status }));
+                }}
             />
             <EditVendorDialog
                 vendor={vendor}
@@ -247,9 +400,9 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
 
             {/* Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group" style={{ animationDelay: "100ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "100ms" }}>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-[#FE6132]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-xl bg-[#FE6132]/10 flex items-center justify-center transition-transform">
                             <TrendingUp className="w-6 h-6 text-[#FE6132]" />
                         </div>
                         <div>
@@ -259,9 +412,9 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                     </div>
                 </Card>
 
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group" style={{ animationDelay: "200ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "200ms" }}>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center transition-transform">
                             <Cart className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
@@ -271,9 +424,9 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                     </div>
                 </Card>
 
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group" style={{ animationDelay: "300ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "300ms" }}>
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center transition-transform">
                             <Star className="w-6 h-6 text-purple-600" />
                         </div>
                         <div>
@@ -283,10 +436,10 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                     </div>
                 </Card>
 
-                <Card className="p-6 border-border/50 animate-fade-in-up hover:shadow-lg transition-all hover:-translate-y-1 group" style={{ animationDelay: "400ms" }}>
+                <Card className="p-6 border-border/50 animate-fade-in-up transition-all group" style={{ animationDelay: "400ms" }}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center transition-transform">
                                 <ArrowUp className="w-6 h-6 text-green-600" />
                             </div>
                             <div>
@@ -305,35 +458,35 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                         <TabsList className="bg-transparent h-auto p-0 w-full justify-start px-6">
                             <TabsTrigger
                                 value="info"
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium data-[state=active]:shadow-none"
+                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium"
                             >
                                 <InfoCircle className="w-4 h-4 mr-2" />
                                 Vendor Info
                             </TabsTrigger>
                             <TabsTrigger
                                 value="catalog"
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium data-[state=active]:shadow-none"
+                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium"
                             >
                                 <Database className="w-4 h-4 mr-2" />
                                 Catalog / Inventory
                             </TabsTrigger>
                             <TabsTrigger
                                 value="orders"
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium data-[state=active]:shadow-none"
+                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium"
                             >
                                 <Cart className="w-4 h-4 mr-2" />
                                 Recent Orders
                             </TabsTrigger>
                             <TabsTrigger
                                 value="verification"
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium data-[state=active]:shadow-none"
+                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium"
                             >
                                 <CheckCircle className="w-4 h-4 mr-2" />
                                 Verification
                             </TabsTrigger>
                             <TabsTrigger
                                 value="settings"
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium data-[state=active]:shadow-none"
+                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#FE6132] data-[state=active]:bg-transparent data-[state=active]:text-foreground text-muted-foreground hover:text-foreground transition-all px-6 py-4 font-medium"
                             >
                                 <Settings className="w-4 h-4 mr-2" />
                                 Settings
@@ -448,9 +601,9 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                                         <div>
                                             <label className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Payment Methods</label>
                                             <div className="mt-1 flex flex-wrap gap-2">
-                                                <span className="px-3 py-1.5 bg-green-600 text-white rounded-full text-xs font-medium shadow-sm">Cash</span>
-                                                <span className="px-3 py-1.5 bg-blue-600 text-white rounded-full text-xs font-medium shadow-sm">Mobile Money</span>
-                                                <span className="px-3 py-1.5 bg-purple-600 text-white rounded-full text-xs font-medium shadow-sm">Card</span>
+                                                <span className="px-3 py-1.5 bg-green-600 text-white rounded-full text-xs font-medium">Cash</span>
+                                                <span className="px-3 py-1.5 bg-blue-600 text-white rounded-full text-xs font-medium">Mobile Money</span>
+                                                <span className="px-3 py-1.5 bg-purple-600 text-white rounded-full text-xs font-medium">Card</span>
                                             </div>
                                         </div>
                                         <div>
@@ -591,9 +744,9 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {catalog.slice(0, 3).map((item, idx) => (
-                                            <Card key={item.id} className="p-4 border-border/50 bg-gradient-to-br from-[#FE6132]/5 to-transparent hover:shadow-lg transition-all hover:-translate-y-1 group animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
+                                            <Card key={item.id} className="p-4 border-border/50 bg-gradient-to-br from-[#FE6132]/5 to-transparent transition-all group animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
                                                 <div className="flex gap-4">
-                                                    <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden relative">
+                                                    <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0 transition-transform overflow-hidden relative">
                                                         {item.image ? (
                                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                                         ) : (
@@ -634,9 +787,9 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                                     {/* Items Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                         {catalog.map((item, idx) => (
-                                            <Card key={item.id} className="p-4 border-border/50 hover:shadow-lg transition-all hover:-translate-y-1 group animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
+                                            <Card key={item.id} className="p-4 border-border/50 transition-all group animate-fade-in-up" style={{ animationDelay: `${idx * 50}ms` }}>
                                                 <div className="flex gap-4">
-                                                    <div className="w-20 h-20 rounded-xl bg-accent/30 flex items-center justify-center text-muted-foreground flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
+                                                    <div className="w-20 h-20 rounded-xl bg-accent/30 flex items-center justify-center text-muted-foreground flex-shrink-0 transition-transform overflow-hidden">
                                                         {item.image ? (
                                                             <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                                         ) : (
@@ -652,7 +805,7 @@ export default function VendorDetailPage({ params }: VendorPageProps) {
                                                         <div className="flex items-center justify-between mt-3">
                                                             <Badge className="text-[10px] px-2 py-0.5 font-black uppercase tracking-widest bg-accent/50 text-foreground border-0">{item.category}</Badge>
                                                             <div className="flex items-center gap-1.5 font-bold">
-                                                                <div className={`w-2 h-2 rounded-full ${item.inStock ? "bg-green-500" : "bg-red-500"} shadow-sm`} />
+                                                                <div className={`w-2 h-2 rounded-full ${item.inStock ? "bg-green-500" : "bg-red-500"}`} />
                                                                 <span className="text-[10px] uppercase text-muted-foreground">{item.inStock ? "Ready" : "Sold Out"}</span>
                                                             </div>
                                                         </div>

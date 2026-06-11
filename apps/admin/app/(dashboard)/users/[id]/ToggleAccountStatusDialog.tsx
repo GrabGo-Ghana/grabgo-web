@@ -11,6 +11,7 @@ import {
 } from "@grabgo/ui";
 import { Button } from "@grabgo/ui";
 import { type Customer } from "../../../../lib/mockData";
+import { apiClient } from "@grabgo/utils";
 
 interface ToggleAccountStatusDialogProps {
     customer: Customer;
@@ -27,20 +28,23 @@ export function ToggleAccountStatusDialog({
     const isActivating = !customer.isActive;
 
     const handleSubmit = async () => {
-        setIsSubmitting(true);
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // TODO: Implement actual API call to toggle account status
-        console.log(`${isActivating ? 'Activating' : 'Deactivating'} account for customer:`, customer.id);
-
-        setIsSubmitting(false);
-        onOpenChange(false);
-
-        // Show success message (you can use a toast notification here)
-        alert(`Customer account ${isActivating ? 'activated' : 'deactivated'} successfully!`);
+        try {
+            setIsSubmitting(true);
+            await apiClient.put(`/admin/users/${customer.id}/status`, {
+                isActive: isActivating,
+                reason: isActivating ? "Reactivated by Admin" : "Suspended by Admin"
+            });
+            setIsSubmitting(false);
+            onOpenChange(false);
+            alert(`Customer account ${isActivating ? 'activated' : 'deactivated'} successfully!`);
+            window.location.reload();
+        } catch (error) {
+            setIsSubmitting(false);
+            console.error("Failed to toggle status:", error);
+            alert("Failed to toggle customer status.");
+        }
     };
+
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

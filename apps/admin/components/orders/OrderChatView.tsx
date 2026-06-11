@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { User, Send, Cycling, Shop } from "iconoir-react";
+import { User, Send, Cycling } from "iconoir-react";
 import { Card } from "@grabgo/ui";
 
 interface Message {
@@ -18,14 +18,19 @@ interface OrderChatViewProps {
 }
 
 export function OrderChatView({ orderId, customerName, riderName }: OrderChatViewProps) {
-    const [messages, setMessages] = useState<Message[]>([
-        { id: '1', sender: 'system', text: 'Chat session started for Order ' + orderId, timestamp: new Date(Date.now() - 3600000).toISOString() },
-        { id: '2', sender: 'customer', text: 'Hi, when will my order arrive?', timestamp: new Date(Date.now() - 3500000).toISOString() },
-        { id: '3', sender: 'rider', text: 'I am currently at the restaurant. They are preparing your food.', timestamp: new Date(Date.now() - 3400000).toISOString() },
-        { id: '4', sender: 'rider', text: 'Just picked it up! On my way.', timestamp: new Date(Date.now() - 2400000).toISOString() },
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const now = Date.now();
+        setMessages([
+            { id: '1', sender: 'system', text: 'Chat session started for Order ' + orderId, timestamp: new Date(now - 3600000).toISOString() },
+            { id: '2', sender: 'customer', text: 'Hi, when will my order arrive?', timestamp: new Date(now - 3500000).toISOString() },
+            { id: '3', sender: 'rider', text: 'I am currently at the restaurant. They are preparing your food.', timestamp: new Date(now - 3400000).toISOString() },
+            { id: '4', sender: 'rider', text: 'Just picked it up! On my way.', timestamp: new Date(now - 2400000).toISOString() },
+        ]);
+    }, [orderId]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -70,7 +75,7 @@ export function OrderChatView({ orderId, customerName, riderName }: OrderChatVie
     };
 
     return (
-        <Card className="flex flex-col h-[500px] border-border/50 overflow-hidden shadow-sm">
+        <Card className="flex flex-col h-[500px] border-border/50 overflow-hidden">
             {/* Chat Header */}
             <div className="p-4 border-b border-border bg-card flex items-center justify-between">
                 <div>
@@ -98,7 +103,7 @@ export function OrderChatView({ orderId, customerName, riderName }: OrderChatVie
                     if (isSystem) {
                         return (
                             <div key={msg.id} className="text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-card/80 backdrop-blur-sm px-4 py-1.5 rounded-full border border-border/50 shadow-sm">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-card/80 px-4 py-1.5 rounded-full border border-border/50">
                                     {msg.text}
                                 </span>
                             </div>
@@ -112,19 +117,19 @@ export function OrderChatView({ orderId, customerName, riderName }: OrderChatVie
                         >
                             <div className="flex items-center gap-2 mb-1.5 px-1">
                                 {isAdmin ? null : (
-                                    <div className={`p-1.5 rounded-full shadow-sm ring-2 ring-background ${info.color}`}>
+                                    <div className={`p-1.5 rounded-full ring-2 ring-background ${info.color}`}>
                                         {info.icon}
                                     </div>
                                 )}
                                 <span className="text-[11px] font-bold text-muted-foreground tracking-tight">{info.label}</span>
                                 {isAdmin ? (
-                                    <div className={`p-1.5 rounded-full shadow-sm ring-2 ring-background ${info.color}`}>
+                                    <div className={`p-1.5 rounded-full ring-2 ring-background ${info.color}`}>
                                         {info.icon}
                                     </div>
                                 ) : null}
                             </div>
-                            <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm font-medium shadow-sm leading-relaxed ${isAdmin
-                                ? 'bg-[#FE6132] text-white rounded-tr-[4px] shadow-orange-500/10 dark:shadow-none'
+                            <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm font-medium leading-relaxed ${isAdmin
+                                ? 'bg-[#FE6132] text-white rounded-tr-[4px]'
                                 : 'bg-card border border-border/50 rounded-tl-[4px] text-foreground'
                                 }`}>
                                 {msg.text}
@@ -151,7 +156,7 @@ export function OrderChatView({ orderId, customerName, riderName }: OrderChatVie
                     <button
                         onClick={handleSendMessage}
                         disabled={!newMessage.trim()}
-                        className="p-2 rounded-full bg-[#FE6132] text-white hover:bg-[#E5572D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shadow-[#FE6132]/20 dark:shadow-none"
+                        className="p-2 rounded-full bg-[#FE6132] text-white hover:bg-[#E5572D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         <Send className="w-5 h-5" />
                     </button>

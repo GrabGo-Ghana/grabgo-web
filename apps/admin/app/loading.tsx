@@ -4,7 +4,7 @@ export default function Loading() {
             <div className="w-full max-w-md space-y-8 animate-fade-in">
                 {/* Logo */}
                 <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 shadow-lg shadow-orange-200/50 animate-pulse-slow">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 animate-pulse-slow">
                         <svg
                             className="w-10 h-10 text-white"
                             fill="none"

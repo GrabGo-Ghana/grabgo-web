@@ -58,9 +58,7 @@ export function OrderAnalyticsCharts({ orders }: OrderAnalyticsChartsProps) {
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: 'hsl(var(--card))',
-                                    borderRadius: '8px',
                                     border: '1px solid hsl(var(--border))',
-                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                     color: 'hsl(var(--foreground))'
                                 }}
                                 itemStyle={{ color: 'hsl(var(--foreground))' }}
@@ -91,15 +89,13 @@ export function OrderAnalyticsCharts({ orders }: OrderAnalyticsChartsProps) {
                                 cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }}
                                 contentStyle={{
                                     backgroundColor: 'hsl(var(--card))',
-                                    borderRadius: '8px',
                                     border: '1px solid hsl(var(--border))',
-                                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                     color: 'hsl(var(--foreground))'
                                 }}
                                 itemStyle={{ color: 'hsl(var(--foreground))' }}
                                 labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
                             />
-                            <Bar dataKey="value" name="Total Orders" fill="#FE6132" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="value" name="Total Orders" fill="#FE6132" radius={[0, 0, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

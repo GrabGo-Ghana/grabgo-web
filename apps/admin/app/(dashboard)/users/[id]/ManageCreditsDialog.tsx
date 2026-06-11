@@ -14,6 +14,7 @@ import {
 } from "@grabgo/ui";
 import { Button, Input, Label } from "@grabgo/ui";
 import { type Customer } from "../../../../lib/mockData";
+import { apiClient } from "@grabgo/utils";
 
 const manageCreditsSchema = z.object({
     action: z.enum(["add", "deduct"]),
@@ -62,20 +63,28 @@ export function ManageCreditsDialog({
 
     const onSubmit = async (data: ManageCreditsFormData) => {
         setIsSubmitting(true);
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        console.log("Credits updated:", data);
-
-        setIsSubmitting(false);
-        onOpenChange(false);
-        reset();
-
-        // TODO: Show success toast
-        alert(
-            `Successfully ${data.action === "add" ? "added" : "deducted"} GH₵${data.amount.toFixed(2)}`
-        );
+        try {
+            const actionType = data.action === "add" ? "grant" : "deduct";
+            const response = await apiClient.post("/admin/finance/credits", {
+                userId: customer.id,
+                amount: data.amount,
+                actionType,
+                reason: data.reason
+            });
+            if (response.data.success) {
+                alert(`Successfully ${data.action === "add" ? "added" : "deducted"} GH₵${data.amount.toFixed(2)}`);
+                window.location.reload();
+            } else {
+                alert(response.data.message || "Failed to adjust credits");
+            }
+        } catch (error: any) {
+            console.error("Failed to update credits:", error);
+            alert(error.response?.data?.message || "Failed to update credits");
+        } finally {
+            setIsSubmitting(false);
+            onOpenChange(false);
+            reset();
+        }
     };
 
     return (

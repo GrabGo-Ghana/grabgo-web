@@ -150,7 +150,7 @@ export default function CategoriesPage() {
                     {filteredCategories.map((category, idx) => (
                         <Card
                             key={category.id}
-                            className="p-6 border-border/50 hover:shadow-lg transition-all animate-fade-in-up"
+                            className="p-6 border-border/50 transition-all animate-fade-in-up"
                             style={{ animationDelay: `${idx * 50}ms` }}
                         >
                             {editingCategory === category.id ? (

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -22,8 +23,9 @@ import {
     DropdownMenuTrigger,
 } from "@grabgo/ui";
 import { Search, Filter, Download, Plus, Star, Shop, Xmark, CheckCircleSolid } from "iconoir-react";
-import { mockVendors, type Vendor } from "../../../lib/mockData";
+import { type Vendor } from "../../../lib/mockData";
 import { format } from "date-fns";
+import { apiClient } from "@grabgo/utils";
 
 import { RegisterVendorDialog } from "./RegisterVendorDialog";
 
@@ -35,35 +37,91 @@ export default function VendorsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
-    const [vendors, setVendors] = useState<Vendor[]>(mockVendors);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [totalVendors, setTotalVendors] = useState(0);
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
-    // Simulate initial loading
     useEffect(() => {
+        let isMounted = true;
+        const fetchVendors = async () => {
+            setIsInitialLoading(true);
+            try {
+                let mappedType = "";
+                if (typeFilter === "food") mappedType = "restaurant";
+                else if (typeFilter === "grocery") mappedType = "grocery";
+                else if (typeFilter === "pharmacy") mappedType = "pharmacy";
+                else if (typeFilter === "market") mappedType = "grabmart";
+
+                let mappedStatus = "";
+                if (statusFilter === "under_review") mappedStatus = "pending";
+                else if (statusFilter === "open") mappedStatus = "approved";
+                else if (statusFilter === "closed") mappedStatus = "suspended";
+
+                const response = await apiClient.get(
+                    `/admin/vendors?page=${currentPage}&limit=${itemsPerPage}&type=${mappedType}&status=${mappedStatus}&q=${searchQuery}`
+                );
+
+                if (isMounted && response.data.success) {
+                    const fetchedVendors = response.data.data.vendors.map((v: any) => {
+                        let uiType: "food" | "grocery" | "pharmacy" | "market" = "food";
+                        if (v.type === "restaurant") uiType = "food";
+                        else if (v.type === "grocery") uiType = "grocery";
+                        else if (v.type === "pharmacy") uiType = "pharmacy";
+                        else if (v.type === "grabmart") uiType = "market";
+
+                        let uiStatus: "open" | "closed" | "busy" | "under_review" | "suspended" = "open";
+                        if (v.status === "pending") uiStatus = "under_review";
+                        else if (v.status === "approved") uiStatus = "open";
+                        else if (v.status === "suspended") uiStatus = "closed";
+                        else if (v.status === "rejected") uiStatus = "closed";
+
+                        return {
+                            id: v.id,
+                            name: v.name,
+                            type: uiType,
+                            ownerName: v.ownerName,
+                            email: v.email,
+                            phone: v.phone,
+                            address: "",
+                            status: uiStatus,
+                            rating: v.rating,
+                            totalRevenue: v.totalSales,
+                            orderCount: v.totalOrders,
+                            isVerified: v.applicationStatus === "approved",
+                            isFeatured: false,
+                            createdAt: v.createdAt,
+                            logo: v.logo || undefined
+                        };
+                    });
+
+                    setVendors(fetchedVendors);
+                    setTotalVendors(response.data.data.total);
+                }
+            } catch (error) {
+                console.error("Failed to fetch vendors:", error);
+            } finally {
+                if (isMounted) {
+                    setIsInitialLoading(false);
+                }
+            }
+        };
+
         const timer = setTimeout(() => {
-            setIsInitialLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, []);
+            fetchVendors();
+        }, 300);
 
-    // Apply filters
-    const filteredVendors = useMemo(() => {
-        return vendors.filter((vendor) => {
-            const matchesSearch = vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                vendor.ownerName.toLowerCase().includes(searchQuery.toLowerCase());
+        return () => {
+            isMounted = false;
+            clearTimeout(timer);
+        };
+    }, [currentPage, itemsPerPage, typeFilter, statusFilter, searchQuery]);
 
-            const matchesType = typeFilter === "all" || vendor.type === typeFilter;
-            const matchesStatus = statusFilter === "all" || vendor.status === statusFilter;
-
-            return matchesSearch && matchesType && matchesStatus;
-        });
-    }, [searchQuery, typeFilter, statusFilter, vendors]);
-
-    // Pagination
-    const totalPages = Math.ceil(filteredVendors.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, filteredVendors.length);
-    const paginatedVendors = filteredVendors.slice(startIndex, endIndex);
+    const handleRegisterSuccess = (newVendor: Vendor) => {
+        setVendors((prev) => [newVendor, ...prev]);
+        setTypeFilter("all");
+        setStatusFilter("all");
+        setSearchQuery("");
+    };
 
     const clearFilters = () => {
         setSearchQuery("");
@@ -72,12 +130,10 @@ export default function VendorsPage() {
         setCurrentPage(1);
     };
 
-    const handleRegisterSuccess = (newVendor: Vendor) => {
-        setVendors((prev) => [newVendor, ...prev]);
-        setTypeFilter("all");
-        setStatusFilter("all");
-        setSearchQuery("");
-    };
+    const totalPages = Math.ceil(totalVendors / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + vendors.length, totalVendors);
+    const paginatedVendors = vendors;
 
     const activeFilterCount = (typeFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0);
 
@@ -108,7 +164,7 @@ export default function VendorsPage() {
                 </div>
                 <Button
                     onClick={() => setIsRegisterOpen(true)}
-                    className="bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 text-white hover:shadow-lg hover:shadow-orange-200 dark:hover:shadow-none transition-all font-bold rounded-xl h-12 px-6 hover:scale-105 active:scale-95"
+                    className="bg-gradient-to-br from-[#FE6132] to-[#FE6132]/80 text-white transition-all font-bold rounded-xl h-12 px-6 active:scale-95"
                 >
                     <Plus className="w-5 h-5 mr-2" />
                     Onboard Vendor
@@ -116,8 +172,8 @@ export default function VendorsPage() {
             </div>
 
             {/* Filters */}
-            <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms] hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-4">
+            <Card className="p-6 border-border/50 animate-fade-in-up [animation-delay:100ms]">
+<div className="flex items-center gap-4">
                     <div className="flex-1 relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-[#FE6132] transition-colors" />
                         <Input
@@ -135,7 +191,7 @@ export default function VendorsPage() {
                                 key={type}
                                 onClick={() => { setTypeFilter(type as any); setCurrentPage(1); }}
                                 className={`px-5 h-full rounded-lg text-sm font-black transition-all duration-300 ${typeFilter === type
-                                    ? "bg-background text-[#FE6132] shadow-sm scale-110 border border-border/50"
+                                    ? "bg-background text-[#FE6132] scale-110 border border-border/50"
                                     : "text-muted-foreground hover:text-foreground hover:bg-background/40"
                                     } uppercase tracking-tighter`}
                             >
@@ -156,7 +212,7 @@ export default function VendorsPage() {
                                 )}
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-64 p-2 rounded-xl border-border/50 shadow-xl">
+                        <DropdownMenuContent align="end" className="w-64 p-2 rounded-xl border-border/50">
                             <DropdownMenuLabel className="px-3 py-2 text-xs font-black uppercase tracking-widest text-muted-foreground">Market Segment</DropdownMenuLabel>
                             <DropdownMenuRadioGroup value={typeFilter} onValueChange={(v) => { setTypeFilter(v as any); setCurrentPage(1); }}>
                                 <DropdownMenuRadioItem value="all" className="rounded-lg">All Entities</DropdownMenuRadioItem>
@@ -189,7 +245,7 @@ export default function VendorsPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Button variant="outline" className="gap-2 border-border/50 h-12 px-5 rounded-xl font-bold hover:shadow-sm transition-all">
+                    <Button variant="outline" className="gap-2 border-border/50 h-12 px-5 rounded-xl font-bold transition-all">
                         <Download className="w-4 h-4" />
                         Export Audit
                     </Button>
@@ -261,7 +317,7 @@ export default function VendorsPage() {
                                     >
                                         <td className="p-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent-foreground/5 flex items-center justify-center text-primary font-black shadow-inner group-hover:scale-110 transition-transform overflow-hidden relative border border-border/30">
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent-foreground/5 flex items-center justify-center text-primary font-black transition-transform overflow-hidden relative border border-border/30">
                                                     {vendor.logo ? (
                                                         <img src={vendor.logo} alt={vendor.name} className="w-full h-full object-cover" />
                                                     ) : (
@@ -293,7 +349,7 @@ export default function VendorsPage() {
                                             </div>
                                         </td>
                                         <td className="p-6">
-                                            <div className="group-hover:scale-105 transition-transform origin-left">
+                                            <div className="transition-transform origin-left">
                                                 {getStatusBadge(vendor.status)}
                                             </div>
                                         </td>
@@ -310,7 +366,7 @@ export default function VendorsPage() {
                                             </div>
                                         </td>
                                         <td className="p-6 text-right">
-                                            <Button size="sm" className="rounded-xl h-10 px-5 font-black bg-accent/40 text-foreground hover:bg-[#FE6132] hover:text-white hover:shadow-lg hover:shadow-orange-200/50 dark:hover:shadow-none transition-all border-0 ring-0">
+                                            <Button size="sm" className="rounded-xl h-10 px-5 font-black bg-accent/40 text-foreground hover:bg-[#FE6132] hover:text-white transition-all border-0 ring-0">
                                                 Manage Hub
                                             </Button>
                                         </td>
@@ -327,12 +383,64 @@ export default function VendorsPage() {
                             <Shop className="w-10 h-10 text-muted-foreground opacity-20" />
                             <h3 className="text-lg font-semibold">No vendors found</h3>
                             <p className="text-muted-foreground max-w-sm mx-auto text-sm">
-                                Try adjusting your filters or search query to find the vendor you're looking for.
+                                Try adjusting your filters or search query to find the vendor your looking for.
                             </p>
                             <Button variant="outline" size="sm" onClick={clearFilters}>Clear Filters</Button>
                         </div>
                     </div>
                 )}
+
+                <div className="border-t border-border/50 p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Show</span>
+                        <Select
+                            value={itemsPerPage.toString()}
+                            onValueChange={(value) => {
+                                setItemsPerPage(Number(value));
+                                setCurrentPage(1);
+                            }}
+                        >
+                            <SelectTrigger className="w-20 h-8 border-border/50">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="25">25</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <span className="text-sm text-muted-foreground">per page</span>
+                    </div>
+
+                    <div className="text-sm text-muted-foreground">
+                        Showing {vendors.length > 0 ? startIndex + 1 : 0}-{endIndex} of {totalVendors} vendors
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-border/50"
+                            onClick={() => setCurrentPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages || 1}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-border/50"
+                            onClick={() => setCurrentPage(currentPage + 1)}
+                            disabled={currentPage >= totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
             </Card>
 
             <RegisterVendorDialog

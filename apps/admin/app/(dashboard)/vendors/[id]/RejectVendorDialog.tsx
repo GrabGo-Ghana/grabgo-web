@@ -14,6 +14,7 @@ import {
 } from "@grabgo/ui";
 import { Button, Label } from "@grabgo/ui";
 import { type Vendor } from "../../../../lib/mockData";
+import { apiClient } from "@grabgo/utils";
 
 const rejectVendorSchema = z.object({
     reason: z.string().min(20, "Please provide a detailed reason (minimum 20 characters)"),
@@ -25,12 +26,14 @@ interface RejectVendorDialogProps {
     vendor: Vendor;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onSuccess?: (status: any) => void;
 }
 
 export function RejectVendorDialog({
     vendor,
     open,
     onOpenChange,
+    onSuccess,
 }: RejectVendorDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,19 +51,30 @@ export function RejectVendorDialog({
 
     const onSubmit = async (data: RejectVendorFormData) => {
         setIsSubmitting(true);
+        try {
+            let dbType = "";
+            if (vendor.type === "food") dbType = "restaurant";
+            else if (vendor.type === "grocery") dbType = "grocery";
+            else if (vendor.type === "pharmacy") dbType = "pharmacy";
+            else if (vendor.type === "market") dbType = "grabmart";
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+            const res = await apiClient.put(`/admin/vendors/${dbType}/${vendor.id}/status`, {
+                status: "rejected",
+                rejectionReason: data.reason
+            });
 
-        // TODO: Implement actual API call to reject vendor
-        console.log("Vendor rejected:", { vendorId: vendor.id, reason: data.reason });
-
-        setIsSubmitting(false);
-        onOpenChange(false);
-        reset();
-
-        // Show success message
-        alert(`Vendor application rejected. Reason sent to ${vendor.email}`);
+            if (res.data.success) {
+                alert(`Vendor application rejected. Reason sent to ${vendor.email}`);
+                if (onSuccess) onSuccess("closed");
+            }
+        } catch (err) {
+            console.error("Failed to reject vendor application:", err);
+            alert("Failed to reject vendor application.");
+        } finally {
+            setIsSubmitting(false);
+            onOpenChange(false);
+            reset();
+        }
     };
 
     return (

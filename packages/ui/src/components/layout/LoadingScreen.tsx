@@ -56,7 +56,7 @@ export function LoadingScreen() {
                         {Array.from({ length: 16 }).map((_, i) => (
                             <div
                                 key={`anim-${i}`}
-                                className="h-8 md:h-10 bg-gradient-to-br from-[#FE6132]/20 via-[#FE6132]/10 to-transparent rounded border border-[#FE6132]/30 shadow-[0_0_10px_rgba(254,97,50,0.1)] animate-pulse-grid"
+                                className="h-8 md:h-10 bg-gradient-to-br from-[#FE6132]/20 via-[#FE6132]/10 to-transparent rounded border border-[#FE6132]/30 animate-pulse-grid"
                                 style={{
                                     animationDelay: `${i * 0.08}s`,
                                     animationDuration: '1.4s',
@@ -67,7 +67,7 @@ export function LoadingScreen() {
 
                     {/* Scanning Line Effect */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-[#FE6132] to-transparent opacity-60 animate-scan shadow-[0_0_8px_rgba(254,97,50,0.6)]" />
+                        <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-[#FE6132] to-transparent opacity-60 animate-scan" />
                     </div>
 
                     {/* Corner Accents */}

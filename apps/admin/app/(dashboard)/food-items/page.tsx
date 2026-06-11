@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
     Card,
@@ -15,111 +15,221 @@ import {
 } from "@grabgo/ui";
 import {
     Search,
-    Filter,
     Plus,
     Database,
-    NavArrowRight,
 } from "iconoir-react";
+import { apiClient } from "@grabgo/utils";
 
-// Mock data - will be replaced with API calls
-const mockFoodItems = [
-    {
-        id: "1",
-        name: "Jollof Rice with Chicken",
-        description: "Spicy Ghanaian jollof rice served with grilled chicken",
-        price: 45.00,
-        category: "Main Course",
-        restaurant: { id: "r1", name: "Mama's Kitchen" },
-        image: null,
-        inStock: true,
-        preparationTime: 25,
-        rating: 4.8,
-        totalReviews: 156,
-    },
-    {
-        id: "2",
-        name: "Waakye with Fish",
-        description: "Traditional rice and beans with fried fish and sides",
-        price: 35.00,
-        category: "Main Course",
-        restaurant: { id: "r1", name: "Mama's Kitchen" },
-        image: null,
-        inStock: true,
-        preparationTime: 20,
-        rating: 4.6,
-        totalReviews: 89,
-    },
-    {
-        id: "3",
-        name: "Banku and Tilapia",
-        description: "Fresh tilapia with banku and pepper sauce",
-        price: 55.00,
-        category: "Main Course",
-        restaurant: { id: "r2", name: "Coastal Delights" },
-        image: null,
-        inStock: false,
-        preparationTime: 30,
-        rating: 4.9,
-        totalReviews: 234,
-    },
-    {
-        id: "4",
-        name: "Kelewele",
-        description: "Spicy fried plantain cubes",
-        price: 15.00,
-        category: "Appetizer",
-        restaurant: { id: "r1", name: "Mama's Kitchen" },
-        image: null,
-        inStock: true,
-        preparationTime: 10,
-        rating: 4.7,
-        totalReviews: 67,
-    },
-    {
-        id: "5",
-        name: "Fufu with Light Soup",
-        description: "Pounded cassava with goat meat light soup",
-        price: 50.00,
-        category: "Main Course",
-        restaurant: { id: "r3", name: "Ashanti Cuisine" },
-        image: null,
-        inStock: true,
-        preparationTime: 35,
-        rating: 4.5,
-        totalReviews: 112,
-    },
-];
+interface CategoryDto {
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+}
 
-const categories = ["All", "Main Course", "Appetizer", "Dessert", "Beverage", "Side Dish"];
-const restaurants = ["All Restaurants", "Mama's Kitchen", "Coastal Delights", "Ashanti Cuisine"];
+interface RestaurantDto {
+    id: string;
+    restaurantName?: string | null;
+    name?: string | null;
+    logo?: string | null;
+}
+
+interface FoodItemDto {
+    id: string;
+    name?: string | null;
+    description?: string | null;
+    price?: number | string | null;
+    foodImage?: string | null;
+    image?: string | null;
+    isAvailable?: boolean | null;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    category?: {
+        id?: string | null;
+        name?: string | null;
+    } | null;
+    restaurantId?: string | null;
+    sellerName?: string | null;
+    restaurant?: {
+        id?: string | null;
+        restaurantName?: string | null;
+        name?: string | null;
+        logo?: string | null;
+    } | null;
+}
+
+interface FoodItem {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    category: string;
+    restaurant: { id: string; name: string };
+    image: string | null;
+    inStock: boolean;
+    searchText: string;
+}
+
+type AvailabilityFilter = "all" | "in-stock" | "out-of-stock";
+
+const mapFoodItem = (item: FoodItemDto): FoodItem => {
+    const name = item.name || "Untitled item";
+    const description = item.description || "";
+
+    return {
+        id: item.id,
+        name,
+        description,
+        price: Number(item.price ?? 0),
+        category: item.category?.name || item.categoryName || "Uncategorized",
+        restaurant: {
+            id: item.restaurant?.id || item.restaurantId || "",
+            name:
+                item.restaurant?.restaurantName ||
+                item.restaurant?.name ||
+                item.sellerName ||
+                "N/A",
+        },
+        image: item.foodImage || item.image || null,
+        inStock: Boolean(item.isAvailable),
+        searchText: `${name} ${description}`.toLowerCase(),
+    };
+};
 
 export default function FoodItemsPage() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("All");
-    const [selectedRestaurant, setSelectedRestaurant] = useState("All Restaurants");
-    const [availabilityFilter, setAvailabilityFilter] = useState<"all" | "in-stock" | "out-of-stock">("all");
-    const [priceRange, setPriceRange] = useState({ min: 0, max: 100 });
+    const [selectedCategory, setSelectedCategory] = useState("all");
+    const [selectedRestaurant, setSelectedRestaurant] = useState("all");
+    const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilter>("all");
+    const [priceRange, setPriceRange] = useState({ min: "", max: "" });
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
+    const [categories, setCategories] = useState<CategoryDto[]>([]);
+    const [restaurants, setRestaurants] = useState<RestaurantDto[]>([]);
     const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const deferredSearchQuery = useDeferredValue(searchQuery);
 
-    // Simulate loading
-    useState(() => {
-        setTimeout(() => setIsLoading(false), 800);
-    });
+    useEffect(() => {
+        let isActive = true;
+        const controller = new AbortController();
 
-    // Filter food items
-    const filteredItems = mockFoodItems.filter(item => {
-        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.description.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-        const matchesRestaurant = selectedRestaurant === "All Restaurants" || item.restaurant.name === selectedRestaurant;
-        const matchesAvailability = availabilityFilter === "all" ||
-            (availabilityFilter === "in-stock" && item.inStock) ||
-            (availabilityFilter === "out-of-stock" && !item.inStock);
-        const matchesPrice = item.price >= priceRange.min && item.price <= priceRange.max;
+        const loadFilters = async () => {
+            try {
+                const [categoriesResponse, restaurantsResponse] = await Promise.all([
+                    apiClient.get("/categories", { signal: controller.signal }),
+                    apiClient.get("/restaurants", { signal: controller.signal }),
+                ]);
 
-        return matchesSearch && matchesCategory && matchesRestaurant && matchesAvailability && matchesPrice;
-    });
+                if (!isActive) return;
+
+                setCategories(categoriesResponse.data?.data ?? []);
+                setRestaurants(restaurantsResponse.data?.data ?? []);
+            } catch (err) {
+                if (!isActive) return;
+                console.error("Failed to load food item filters:", err);
+            }
+        };
+
+        loadFilters();
+
+        return () => {
+            isActive = false;
+            controller.abort();
+        };
+    }, []);
+
+    useEffect(() => {
+        let isActive = true;
+        const controller = new AbortController();
+
+        const loadFoods = async () => {
+            setIsLoading(true);
+            setError(null);
+
+            const params = new URLSearchParams();
+            if (selectedCategory !== "all") params.set("category", selectedCategory);
+            if (selectedRestaurant !== "all") params.set("restaurant", selectedRestaurant);
+
+            try {
+                const response = await apiClient.get(`/foods?${params.toString()}`, {
+                    signal: controller.signal,
+                });
+                if (!isActive) return;
+
+                const items = (response.data?.data ?? []).map(mapFoodItem);
+                setFoodItems(items);
+                const itemIds = new Set(items.map((item: FoodItem) => item.id));
+                setSelectedItems((selected) => selected.filter((id) => itemIds.has(id)));
+            } catch (err) {
+                if (!isActive) return;
+                console.error("Failed to load food items:", err);
+                setError("Unable to load food items right now.");
+                setFoodItems([]);
+            } finally {
+                if (isActive) setIsLoading(false);
+            }
+        };
+
+        loadFoods();
+
+        return () => {
+            isActive = false;
+            controller.abort();
+        };
+    }, [selectedCategory, selectedRestaurant]);
+
+    const selectedCategoryName = useMemo(() => {
+        if (selectedCategory === "all") return null;
+        return categories.find((cat) => cat.id === selectedCategory)?.name || selectedCategory;
+    }, [categories, selectedCategory]);
+
+    const selectedRestaurantName = useMemo(() => {
+        if (selectedRestaurant === "all") return null;
+        const restaurant = restaurants.find((rest) => rest.id === selectedRestaurant);
+        return restaurant?.restaurantName || restaurant?.name || selectedRestaurant;
+    }, [restaurants, selectedRestaurant]);
+    const normalizedSearchQuery = useMemo(
+        () => deferredSearchQuery.trim().toLowerCase(),
+        [deferredSearchQuery]
+    );
+
+    const minPrice = useMemo(() => {
+        if (priceRange.min === "") return Number.NEGATIVE_INFINITY;
+        const value = Number(priceRange.min);
+        return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+    }, [priceRange.min]);
+
+    const maxPrice = useMemo(() => {
+        if (priceRange.max === "") return Number.POSITIVE_INFINITY;
+        const value = Number(priceRange.max);
+        return Number.isFinite(value) ? value : Number.POSITIVE_INFINITY;
+    }, [priceRange.max]);
+
+    const filteredItems = useMemo(() => {
+        return foodItems.filter((item) => {
+            const matchesSearch =
+                normalizedSearchQuery.length === 0 ||
+                item.searchText.includes(normalizedSearchQuery);
+            const matchesAvailability =
+                availabilityFilter === "all" ||
+                (availabilityFilter === "in-stock" && item.inStock) ||
+                (availabilityFilter === "out-of-stock" && !item.inStock);
+            const matchesPrice = item.price >= minPrice && item.price <= maxPrice;
+
+            return matchesSearch && matchesAvailability && matchesPrice;
+        });
+    }, [foodItems, normalizedSearchQuery, availabilityFilter, minPrice, maxPrice]);
+
+    const selectedItemSet = useMemo(() => new Set(selectedItems), [selectedItems]);
+    const shouldAnimateCards = filteredItems.length <= 24;
+
+    const handleToggleItemSelection = useCallback((itemId: string) => {
+        setSelectedItems((current) =>
+            current.includes(itemId)
+                ? current.filter((id) => id !== itemId)
+                : [...current, itemId]
+        );
+    }, []);
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -209,8 +319,9 @@ export default function FoodItemsPage() {
                                     <SelectValue placeholder="All" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-card text-foreground">
+                                    <SelectItem value="all">All</SelectItem>
                                     {categories.map(cat => (
-                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -224,8 +335,11 @@ export default function FoodItemsPage() {
                                     <SelectValue placeholder="All Restaurants" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-card text-foreground">
+                                    <SelectItem value="all">All Restaurants</SelectItem>
                                     {restaurants.map(rest => (
-                                        <SelectItem key={rest} value={rest}>{rest}</SelectItem>
+                                        <SelectItem key={rest.id} value={rest.id}>
+                                            {rest.restaurantName || rest.name || "Unnamed restaurant"}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -236,7 +350,7 @@ export default function FoodItemsPage() {
                             <label className="text-sm font-medium mb-2 block">Availability</label>
                             <Select
                                 value={availabilityFilter}
-                                onValueChange={(v) => setAvailabilityFilter(v as unknown as "all" | "in-stock" | "out-of-stock")}
+                                onValueChange={(value) => setAvailabilityFilter(value as AvailabilityFilter)}
                             >
                                 <SelectTrigger className="w-full h-10 border-input bg-background px-3 text-sm">
                                     <SelectValue placeholder="All Items" />
@@ -252,20 +366,22 @@ export default function FoodItemsPage() {
                         {/* Price Range */}
                         <div>
                             <label className="text-sm font-medium mb-2 block">
-                                Price Range (GH₵{priceRange.min} - GH₵{priceRange.max})
+                                Price Range
                             </label>
                             <div className="flex gap-2">
                                 <input
                                     type="number"
                                     value={priceRange.min}
-                                    onChange={(e) => setPriceRange({ ...priceRange, min: Number(e.target.value) })}
+                                    min="0"
+                                    onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
                                     className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                                     placeholder="Min"
                                 />
                                 <input
                                     type="number"
                                     value={priceRange.max}
-                                    onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                                    min="0"
+                                    onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
                                     className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                                     placeholder="Max"
                                 />
@@ -276,14 +392,14 @@ export default function FoodItemsPage() {
                     {/* Active Filters Summary */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-muted-foreground">Active filters:</span>
-                        {selectedCategory !== "All" && (
+                        {selectedCategoryName && (
                             <Badge variant="outline" className="gap-1">
-                                Category: {selectedCategory}
+                                Category: {selectedCategoryName}
                             </Badge>
                         )}
-                        {selectedRestaurant !== "All Restaurants" && (
+                        {selectedRestaurantName && (
                             <Badge variant="outline" className="gap-1">
-                                Restaurant: {selectedRestaurant}
+                                Restaurant: {selectedRestaurantName}
                             </Badge>
                         )}
                         {availabilityFilter !== "all" && (
@@ -291,20 +407,25 @@ export default function FoodItemsPage() {
                                 {availabilityFilter === "in-stock" ? "In Stock" : "Out of Stock"}
                             </Badge>
                         )}
-                        {(priceRange.min > 0 || priceRange.max < 100) && (
+                        {(priceRange.min !== "" || priceRange.max !== "") && (
                             <Badge variant="outline" className="gap-1">
-                                GH₵{priceRange.min} - GH₵{priceRange.max}
+                                GH₵{priceRange.min || "0"} - GH₵{priceRange.max || "Any"}
                             </Badge>
                         )}
                     </div>
                 </div>
             </Card>
+            {error && (
+                <Card className="p-4 border-red-200 bg-red-50 text-sm font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+                    {error}
+                </Card>
+            )}
 
             {/* Results Count */}
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
                     Showing <span className="font-medium text-foreground">{filteredItems.length}</span> of{" "}
-                    <span className="font-medium text-foreground">{mockFoodItems.length}</span> food items
+                    <span className="font-medium text-foreground">{foodItems.length}</span> food items
                 </p>
             </div>
 
@@ -342,23 +463,22 @@ export default function FoodItemsPage() {
                         <div key={item.id} className="relative">
                             <input
                                 type="checkbox"
-                                checked={selectedItems.includes(item.id)}
+                                checked={selectedItemSet.has(item.id)}
                                 onChange={(e) => {
                                     e.stopPropagation();
-                                    if (selectedItems.includes(item.id)) {
-                                        setSelectedItems(selectedItems.filter(id => id !== item.id));
-                                    } else {
-                                        setSelectedItems([...selectedItems, item.id]);
-                                    }
+                                    handleToggleItemSelection(item.id);
                                 }}
                                 className="absolute top-6 left-6 z-10 w-4 h-4 rounded border-2 border-border cursor-pointer"
                                 onClick={(e) => e.stopPropagation()}
                             />
                             <Link href={`/food-items/${item.id}`}>
-                                <Card className="p-4 border-border/50 hover:shadow-lg transition-all hover:-translate-y-1 group animate-fade-in-up cursor-pointer" style={{ animationDelay: `${idx * 50}ms` }}>
+                                <Card
+                                    className={`p-4 border-border/50 transition-all group cursor-pointer ${shouldAnimateCards ? "animate-fade-in-up" : ""}`}
+                                    style={shouldAnimateCards ? { animationDelay: `${Math.min(idx, 12) * 35}ms` } : undefined}
+                                >
                                     <div className="flex gap-4">
                                         {/* Image */}
-                                        <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
+                                        <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0 transition-transform overflow-hidden">
                                             {item.image ? (
                                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                                             ) : (
@@ -384,7 +504,7 @@ export default function FoodItemsPage() {
                                                     {item.category}
                                                 </Badge>
                                                 <div className="flex items-center gap-1.5">
-                                                    <div className={`w-2 h-2 rounded-full ${item.inStock ? "bg-green-500" : "bg-red-500"} shadow-sm`} />
+                                                    <div className={`w-2 h-2 rounded-full ${item.inStock ? "bg-green-500" : "bg-red-500"}`} />
                                                     <span className="text-[10px] uppercase text-muted-foreground font-medium">
                                                         {item.inStock ? "In Stock" : "Out of Stock"}
                                                     </span>

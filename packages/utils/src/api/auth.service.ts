@@ -9,6 +9,16 @@ export const authService = {
         try {
             const response = await apiClient.post('/users/login', credentials);
 
+            if (response.data.requiresMfa) {
+                if (!response.data.mfaChallengeToken) {
+                    throw new Error('Multi-factor authentication is required, but no challenge token was provided.');
+                }
+                return {
+                    requiresMfa: true,
+                    mfaChallengeToken: response.data.mfaChallengeToken,
+                };
+            }
+
             if (response.data.token && response.data.user) {
                 // Store token and user data (SSR safe)
                 if (typeof window !== 'undefined') {
@@ -25,6 +35,32 @@ export const authService = {
             throw new Error(response.data.message || 'Login failed');
         } catch (error: any) {
             const message = error.response?.data?.message || error.message || 'Login failed';
+            throw new Error(message);
+        }
+    },
+
+    /**
+     * Verify admin login MFA OTP
+     */
+    verifyMfa: async (mfaChallengeToken: string, otp: string): Promise<AuthResponse> => {
+        try {
+            const response = await apiClient.post('/users/verify-mfa', { mfaChallengeToken, otp });
+
+            if (response.data.token && response.data.user) {
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('grabgo_admin_token', response.data.token);
+                    localStorage.setItem('grabgo_admin_user', JSON.stringify(response.data.user));
+                }
+
+                return {
+                    user: response.data.user,
+                    token: response.data.token,
+                };
+            }
+
+            throw new Error(response.data.message || 'Verification failed');
+        } catch (error: any) {
+            const message = error.response?.data?.message || error.message || 'Verification failed';
             throw new Error(message);
         }
     },
