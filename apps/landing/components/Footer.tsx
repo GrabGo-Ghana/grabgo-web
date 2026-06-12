@@ -15,9 +15,9 @@ export default function Footer() {
     // If it's under the Legal column, route to an actual file page route
     if (columnTitle === "Legal") {
       switch (link) {
-        case "Privacy Policy": return "legal/privacy-policy";
-        case "Terms and Conditions": return "legal/terms";
-        case "Cookie Policy": return "legal/cookie-policy";
+        case "Privacy Policy": return "/legal/privacy-policy";
+        case "Terms and Conditions": return "/legal/terms";
+        case "Cookie Policy": return "/legal/cookie-policy";
         default: return `/${link.toLowerCase().replace(/ /g, "-")}`;
       }
     }
