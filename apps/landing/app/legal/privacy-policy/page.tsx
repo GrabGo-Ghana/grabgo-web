@@ -48,11 +48,11 @@ const sections = [
   },
   {
     title: "12. How Can You Contact Us About This Notice?",
-    content: "If you have questions or comments about this notice, you may contact us at: GrabGo, Accra, Greater Accra Region 00233, Ghana. Phone: (+233)536997662. Email: grabgoghana@gmail.com."
+    content: "If you have questions or comments about this notice, you may contact us at: GrabGo, Accra, Greater Accra Region 00233, Ghana. Phone: (+233)536997662. Email: hello@grabgogh.app."
   },
   {
     title: "13. How Can You Review, Update, or Delete the Data We Collect From You?",
-    content: "Based on the applicable laws of your country, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. To request to review, update, or delete your personal information, please contact us at grabgoghana@gmail.com."
+    content: "Based on the applicable laws of your country, you may have the right to request access to the personal information we collect from you, details about how we have processed it, correct inaccuracies, or delete your personal information. You may also have the right to withdraw your consent to our processing of your personal information. To request to review, update, or delete your personal information, please contact us at hello@grabgogh.app."
   },
 ]
 
@@ -76,12 +76,12 @@ export default function PrivacyPolicy() {
           <div className="mb-10 space-y-4">
             <p className="text-lg text-slate-600 leading-relaxed">
               This Privacy Notice for GrabGo ("we," "us," or "our") describes how and why we might access, collect, store, use, and/or share your personal information when you use our services, including when you visit our website at{" "}
-              <a href="https://grabgogh.com" className="text-[#fe6132] underline">https://grabgogh.com</a>{" "}
+              <a href="https://grabgogh.app" className="text-[#fe6132] underline">https://grabgogh.app</a>{" "}
               or use our mobile applications GrabGo, GrabGo Rider, and GrabGo Vendor.
             </p>
             <p className="text-lg text-slate-600 leading-relaxed">
               Questions or concerns? Reading this Privacy Notice will help you understand your privacy rights and choices. If you do not agree with our policies and practices, please do not use our Services. You can contact us at{" "}
-              <a href="mailto:grabgoghana@gmail.com" className="text-[#fe6132] underline">grabgoghana@gmail.com</a>.
+              <a href="mailto:hello@grabgogh.app" className="text-[#fe6132] underline">hello@grabgogh.app</a>.
             </p>
           </div>
 
@@ -111,7 +111,6 @@ export default function PrivacyPolicy() {
               </div>
             ))}
           </div>
-
         </div>
       </div>
       <Footer />

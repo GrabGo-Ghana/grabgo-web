@@ -36,7 +36,7 @@ const sections = [
   },
   { 
     title: "Where Can I Get Further Information?", 
-    content: "If you have any questions about our use of cookies or other technologies, please email us at contact@grabgogh.com or by post to: GrabGo, Accra, Greater Accra Region 00233, Ghana. Phone: (+233)536997662." 
+    content: "If you have any questions about our use of cookies or other technologies, please email us at hello@grabgogh.app or by post to: GrabGo, Accra, Greater Accra Region 00233, Ghana. Phone: (+233)536997662." 
   },
 ]
 
@@ -60,7 +60,7 @@ export default function CookiePolicy() {
           <div className="mb-10">
             <p className="text-lg text-slate-600 leading-relaxed">
               This Cookie Policy explains how GrabGo ("Company," "we," "us," and "our") uses cookies and similar technologies to recognize you when you visit our website at{" "}
-              <a href="https://grabgogh.com" className="text-[#fe6132] underline">https://grabgogh.com</a>. It explains what these technologies are and why we use them, as well as your rights to control our use of them.
+              <a href="https://grabgogh.app" className="text-[#fe6132] underline">https://grabgogh.app</a>. It explains what these technologies are and why we use them, as well as your rights to control our use of them.
             </p>
           </div>
 
@@ -96,7 +96,7 @@ export default function CookiePolicy() {
             <p className="text-white/70 text-sm mb-4">Reach out to us and we'll be happy to help.</p>
             {/*  Fixed: Wrapped the floating attributes safely inside an opening <a tag */}
             <a 
-              href="mailto:contact@grabgogh.com" 
+              href="mailto:hello@grabgogh.app" 
               className="inline-flex items-center px-6 py-3 bg-[#fe6132] text-white font-bold rounded-full hover:opacity-90 transition text-sm"
             >
               Email Us

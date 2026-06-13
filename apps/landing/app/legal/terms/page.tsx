@@ -100,7 +100,7 @@ const sections = [
   },
   {
     title: "25. SMS Text Messaging",
-    content: "By opting into any GrabGo text messaging program, you expressly consent to receive text messages (SMS) to your mobile number. If at any time you wish to stop receiving SMS messages from us, simply reply to the text with \"STOP.\" Message and data rates may apply. For support, reply with the keyword HELP or email us at grabgoghana@gmail.com."
+    content: "By opting into any GrabGo text messaging program, you expressly consent to receive text messages (SMS) to your mobile number. If at any time you wish to stop receiving SMS messages from us, simply reply to the text with \"STOP.\" Message and data rates may apply. For support, reply with the keyword HELP or email us at hello@grabgogh.app."
   },
   {
     title: "26. Food Quality and Restaurant Responsibility",
@@ -120,7 +120,7 @@ const sections = [
   },
   {
     title: "30. Contact Us",
-    content: "In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: GrabGo, Accra, Greater Accra Region 00233, Ghana. Phone: (+233)536997662. Email: grabgoghana@gmail.com."
+    content: "In order to resolve a complaint regarding the Services or to receive further information regarding use of the Services, please contact us at: GrabGo, Accra, Greater Accra Region 00233, Ghana. Phone: (+233)536997662. Email: hello@grabgogh.app."
   },
 ]
 
@@ -143,9 +143,9 @@ export default function TermsAndConditions() {
           {/* Intro */}
           <p className="mb-10 text-lg text-slate-600 leading-relaxed">
             We are GrabGo, doing business as GrabGo ("Company," "we," "us," "our"), a company registered in Ghana at Accra, Greater Accra Region 00233. We operate the website{" "}
-            <a href="https://grabgogh.com" className="text-[#fe6132] underline">https://grabgogh.com</a>{" "}
+            <a href="https://grabgogh.app" className="text-[#fe6132] underline">https://grabgogh.app</a>{" "}
             and the mobile applications GrabGo, GrabGo Rider, and GrabGo Vendor. You can contact us by phone at (+233)536997662 or email at{" "}
-            <a href="mailto:grabgoghana@gmail.com" className="text-[#fe6132] underline">grabgoghana@gmail.com</a>.
+            <a href="mailto:hello@grabgogh.app" className="text-[#fe6132] underline">hello@grabgogh.app</a>.
           </p>
 
           {/* Sections */}
