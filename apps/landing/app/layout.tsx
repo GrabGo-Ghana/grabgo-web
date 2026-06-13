@@ -82,11 +82,11 @@ export default function RootLayout({
           }}
         />
         <script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
-  }}
-/>
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
+      }}
+        />
         {children}
       </body>
     </html>
